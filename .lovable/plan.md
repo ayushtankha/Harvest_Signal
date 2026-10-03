@@ -4,7 +4,7 @@ Most of the brief already exists: voice and text both feed the same local classi
 
 ## Changes
 
-1. **Voice really unavailable = shown clearly**
+1. **Voice availability is explicit and never falls back online**
    - On the visitor screen, the microphone button shows a clear "Voice unavailable — please type" state if the speech model fails to load or the microphone is blocked. Typing always stays available. Nothing falls back to an online service.
    - Raw recording is dropped right after transcription (already true; worth one more check).
 
@@ -27,8 +27,7 @@ Most of the brief already exists: voice and text both feed the same local classi
    - Report the real total download size for speech and for the classifier, counting every file and not just the largest one.
 
 7. **Honest wording for the 3-submission rule, used everywhere**
-   - Rule: an opportunity is 3 separate anonymous visitor submissions for the same category within the season window.
-   - A session ID only stops repeat submissions in one session from inflating the count. It does not prove who someone is.
+   - Rule: an opportunity requires 3 separate anonymous visitor submissions for the same category within the season window. A session ID prevents repeat submissions within one session from inflating the count; it does not identify or verify a real person.
    - Use this wording in Noor's text, Settings, the README and code comments, replacing "3 separate visitors".
    - Keep the two safeguards separate on screen and in the demo: "Not sure" when the AI is uncertain, and "Not enough data — ask a visitor" when there are only 1–2 requests.
 
