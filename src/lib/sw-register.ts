@@ -12,7 +12,7 @@ export function registerServiceWorker() {
   navigator.serviceWorker.register("/sw.js").catch(() => {});
 }
 
-export async function swVersion(): Promise<string | null> {
+export async function swVersion(): Promise<{ version: string | null; files: number } | null> {
   const ctrl = navigator.serviceWorker?.controller;
   if (!ctrl) return null;
   return new Promise((resolve) => {
