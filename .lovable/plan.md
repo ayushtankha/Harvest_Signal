@@ -20,21 +20,24 @@ Most of the brief already exists: voice and text both feed the same local classi
    - Add a test that "Delete all data" really empties local storage (fake IndexedDB).
    - Keep the existing 1/2/3-submission and duplicate-session tests.
    - Check in the browser: EN/FR/DE harvest messages give Harvest walk, the ambiguous message gives Not sure, and no network requests happen offline.
-   - Voice-to-text check: one quick try with a fake microphone file in the headless browser. If it gets fiddly I drop it. The real test is on your phone (step 7).
+   - Voice-to-text check: one quick try with a fake microphone file in the headless browser. If it gets fiddly I drop it. The real test is on your phone (see the final acceptance test).
 
 6. **Smaller speech model download**
    - Look at every Whisper-tiny variant and use the smallest quantized setup that works reliably in the browser.
    - Report the real total download size for speech and for the classifier, counting every file and not just the largest one.
 
-7. **Honest wording: "submissions", not "visitors"**
-   - Change Noor's text, the README and comments from "3 separate visitors" to "3 separate visitor submissions". A random session ID can't prove the submissions came from 3 different people.
+7. **Honest wording for the 3-submission rule, used everywhere**
+   - Rule: an opportunity is 3 separate anonymous visitor submissions for the same category within the season window.
+   - A session ID only stops repeat submissions in one session from inflating the count. It does not prove who someone is.
+   - Use this wording in Noor's text, Settings, the README and code comments, replacing "3 separate visitors".
    - Keep the two safeguards separate on screen and in the demo: "Not sure" when the AI is uncertain, and "Not enough data — ask a visitor" when there are only 1–2 requests.
 
-## Final acceptance test (on your phone)
-Open the published app once online, wait for the downloads to finish, turn on airplane mode, then speak a request in EN, FR and DE on a real phone microphone. Each one should show a local transcript, get classified, and together they should trigger the opportunity.
+8. **README**
+   - Add a clear section: voice is input only and turned into text on the device; Noor gets text; no text-to-speech; no ElevenLabs, Anthropic or Bright Data at runtime; airplane-mode steps.
+   - For every model and runtime actually shipped, list the exact model and version, its total download size, and its license, each checked against its source page before writing it down.
 
-5. **README**
-   - Add a clear section: voice is input only, turned into text on the device; Noor gets text; no text-to-speech; no ElevenLabs, Anthropic or Bright Data at runtime; model sizes and licenses (E5 MIT, Whisper-tiny Apache-2.0, ONNX Runtime MIT); airplane-mode steps.
+## Final acceptance test (on your phone)
+Open the published app once online, wait for the downloads to finish, then turn on airplane mode. If offline voice works, each request spoken in EN, FR and DE should show a local transcript and get classified, and together they trigger the opportunity. If voice is unavailable, the app must say so, and typing remains the guaranteed offline path.
 
 ## Technical details
 - Files: `src/routes/visitor.tsx` (unavailable state), `src/lib/taxonomy.ts` (AMBIGUOUS_DEMO), `src/routes/demo.tsx`, `src/lib/classifier.test.ts` (new), `src/lib/db.test.ts` (new, `fake-indexeddb` dev dependency), README.md.
