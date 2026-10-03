@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "asset_id": "a73bb589-48dc-45b5-a382-ffc7ff5bfcc0",
+  "project_id": "ca5cee87-86db-4171-8e59-038129b46f60",
+  "url": "/__l5e/assets-v1/a73bb589-48dc-45b5-a382-ffc7ff5bfcc0/e5-model_quantized.onnx",
+  "r2_key": "a/v1/ca5cee87-86db-4171-8e59-038129b46f60/a73bb589-48dc-45b5-a382-ffc7ff5bfcc0/e5-model_quantized.onnx",
+  "original_filename": "e5-model_quantized.onnx",
+  "size": 118308185,
+  "content_type": "application/octet-stream",
+  "created_at": "2026-10-03T19:35:23Z"
+}
