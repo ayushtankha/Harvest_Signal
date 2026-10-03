@@ -46,14 +46,20 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
 
+  const msg = String((error as Error)?.message ?? error);
+  const offlineMissing =
+    (typeof navigator !== "undefined" && !navigator.onLine) ||
+    /dynamically imported module|Importing a module script failed|Failed to fetch|Loading chunk/i.test(msg);
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          This page didn't load
+          {offlineMissing ? "Not saved on this phone yet" : "This page didn't load"}
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Something went wrong on our end. You can try refreshing or head back home.
+          {offlineMissing
+            ? "This part of the app isn't saved on this phone yet — open it once online."
+            : "Something went wrong on our end. You can try refreshing or head back home."}
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
