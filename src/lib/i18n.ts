@@ -153,6 +153,7 @@ export const VISITOR_T: Record<VisitorLang, Record<VKeys, string>> = {
     thanks: "Danke",
     another: "Nächster Besuch",
     voiceOff: "Sprache noch nicht verfügbar — bitte tippen",
+    voiceNo: "Sprache auf diesem Gerät nicht verfügbar — bitte tippen",
     privacy: "Keine Namen. Bleibt auf diesem Gerät.",
   },
 };
