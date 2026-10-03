@@ -1,6 +1,8 @@
 // Registers the offline service worker on the published site only.
 // Never inside the Lovable editor preview (iframe / preview hosts / localhost dev).
-function isPublishedHost() {
+export const PUBLISHED_URL = "https://pixel-perfect-clone-91268.lovable.app";
+
+export function isPublishedHost() {
   if (typeof window === "undefined" || !("serviceWorker" in navigator)) return false;
   const inIframe = window.self !== window.top;
   const host = window.location.hostname;
