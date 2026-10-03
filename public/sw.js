@@ -8,13 +8,26 @@ const ROUTES = ["/", "/visitor", "/noor", "/settings", "/demo"];
 const ASSET_RE = /\/?assets\/[A-Za-z0-9._\-$~@]+\.(?:js|mjs|css|woff2?|svg|png|ico|webp|jpg)/g;
 const TEXT_RE = /\.(?:js|mjs|css)$/;
 
+// Retry each download a few times so a weak phone connection doesn't abort the save.
+async function getRetry(u) {
+  let last;
+  for (let i = 0; i < 4; i++) {
+    try {
+      const res = await fetch(u, { cache: "no-store" });
+      if (res.ok) return res;
+      last = new Error("status " + res.status + " " + u);
+    } catch (err) { last = err; }
+    await new Promise((r) => setTimeout(r, 800 * (i + 1)));
+  }
+  throw last || new Error("precache failed: " + u);
+}
+
 async function crawl() {
   const found = new Set();
   const queue = [];
   const htmls = {};
   for (const r of ROUTES) {
-    const res = await fetch(r, { cache: "no-store" });
-    if (!res.ok) throw new Error("precache failed: " + r);
+    const res = await getRetry(r);
     htmls[r] = res.clone();
     const text = await res.text();
     for (const m of text.match(ASSET_RE) || []) queue.push("/" + m.replace(/^\//, ""));
@@ -24,8 +37,7 @@ async function crawl() {
     const u = queue.shift();
     if (found.has(u)) continue;
     found.add(u);
-    const res = await fetch(u, { cache: "no-store" });
-    if (!res.ok) throw new Error("precache failed: " + u);
+    const res = await getRetry(u);
     bodies[u] = res.clone();
     if (TEXT_RE.test(u)) {
       const text = await res.text();
@@ -54,7 +66,8 @@ async function currentCache() {
 }
 
 self.addEventListener("install", (e) => {
-  e.waitUntil(crawl().then(() => self.skipWaiting()));
+  self.skipWaiting();
+  e.waitUntil(crawl());
 });
 
 self.addEventListener("activate", (e) => {
