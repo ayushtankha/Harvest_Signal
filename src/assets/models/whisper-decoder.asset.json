@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "asset_id": "a0aaa12d-d255-4076-ace3-a4a7c920416e",
+  "project_id": "ca5cee87-86db-4171-8e59-038129b46f60",
+  "url": "/__l5e/assets-v1/a0aaa12d-d255-4076-ace3-a4a7c920416e/whisper-decoder_model_merged_quantized.onnx",
+  "r2_key": "a/v1/ca5cee87-86db-4171-8e59-038129b46f60/a0aaa12d-d255-4076-ace3-a4a7c920416e/whisper-decoder_model_merged_quantized.onnx",
+  "original_filename": "whisper-decoder_model_merged_quantized.onnx",
+  "size": 30727765,
+  "content_type": "application/octet-stream",
+  "created_at": "2026-10-03T19:35:34Z"
+}

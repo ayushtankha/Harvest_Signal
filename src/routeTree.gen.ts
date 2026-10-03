@@ -10,33 +10,115 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DemoRouteImport } from './routes/demo'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as VisitorRouteImport } from './routes/visitor'
+import { Route as NoorIndexRouteImport } from './routes/noor.index'
+import { Route as NoorOpportunityCategoryRouteImport } from './routes/noor.opportunity.$category'
+import { Route as NoorTourCategoryRouteImport } from './routes/noor.tour.$category'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DemoRoute = DemoRouteImport.update({
+  id: '/demo',
+  path: '/demo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VisitorRoute = VisitorRouteImport.update({
+  id: '/visitor',
+  path: '/visitor',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NoorIndexRoute = NoorIndexRouteImport.update({
+  id: '/noor/',
+  path: '/noor/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NoorOpportunityCategoryRoute = NoorOpportunityCategoryRouteImport.update({
+  id: '/noor/opportunity/$category',
+  path: '/noor/opportunity/$category',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NoorTourCategoryRoute = NoorTourCategoryRouteImport.update({
+  id: '/noor/tour/$category',
+  path: '/noor/tour/$category',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/demo': typeof DemoRoute
+  '/settings': typeof SettingsRoute
+  '/visitor': typeof VisitorRoute
+  '/noor/': typeof NoorIndexRoute
+  '/noor/opportunity/$category': typeof NoorOpportunityCategoryRoute
+  '/noor/tour/$category': typeof NoorTourCategoryRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/demo': typeof DemoRoute
+  '/settings': typeof SettingsRoute
+  '/visitor': typeof VisitorRoute
+  '/noor': typeof NoorIndexRoute
+  '/noor/opportunity/$category': typeof NoorOpportunityCategoryRoute
+  '/noor/tour/$category': typeof NoorTourCategoryRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/demo': typeof DemoRoute
+  '/settings': typeof SettingsRoute
+  '/visitor': typeof VisitorRoute
+  '/noor/': typeof NoorIndexRoute
+  '/noor/opportunity/$category': typeof NoorOpportunityCategoryRoute
+  '/noor/tour/$category': typeof NoorTourCategoryRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/demo'
+    | '/settings'
+    | '/visitor'
+    | '/noor/'
+    | '/noor/opportunity/$category'
+    | '/noor/tour/$category'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/demo'
+    | '/settings'
+    | '/visitor'
+    | '/noor'
+    | '/noor/opportunity/$category'
+    | '/noor/tour/$category'
+  id:
+    | '__root__'
+    | '/'
+    | '/demo'
+    | '/settings'
+    | '/visitor'
+    | '/noor/'
+    | '/noor/opportunity/$category'
+    | '/noor/tour/$category'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DemoRoute: typeof DemoRoute
+  SettingsRoute: typeof SettingsRoute
+  VisitorRoute: typeof VisitorRoute
+  NoorIndexRoute: typeof NoorIndexRoute
+  NoorOpportunityCategoryRoute: typeof NoorOpportunityCategoryRoute
+  NoorTourCategoryRoute: typeof NoorTourCategoryRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +130,59 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/demo': {
+      id: '/demo'
+      path: '/demo'
+      fullPath: '/demo'
+      preLoaderRoute: typeof DemoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/visitor': {
+      id: '/visitor'
+      path: '/visitor'
+      fullPath: '/visitor'
+      preLoaderRoute: typeof VisitorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/noor/': {
+      id: '/noor/'
+      path: '/noor'
+      fullPath: '/noor/'
+      preLoaderRoute: typeof NoorIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/noor/opportunity/$category': {
+      id: '/noor/opportunity/$category'
+      path: '/noor/opportunity/$category'
+      fullPath: '/noor/opportunity/$category'
+      preLoaderRoute: typeof NoorOpportunityCategoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/noor/tour/$category': {
+      id: '/noor/tour/$category'
+      path: '/noor/tour/$category'
+      fullPath: '/noor/tour/$category'
+      preLoaderRoute: typeof NoorTourCategoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DemoRoute: DemoRoute,
+  SettingsRoute: SettingsRoute,
+  VisitorRoute: VisitorRoute,
+  NoorIndexRoute: NoorIndexRoute,
+  NoorOpportunityCategoryRoute: NoorOpportunityCategoryRoute,
+  NoorTourCategoryRoute: NoorTourCategoryRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
