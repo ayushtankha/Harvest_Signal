@@ -1,7 +1,7 @@
 // HarvestSignal service worker: keeps the app usable in airplane mode.
 // Same-origin only. Model files are cached by the AI worker in their own cache.
 const VERSION = "hs-app-v1";
-const PRECACHE = ["/", "/visitor", "/noor", "/settings", "/demo", "/ort/ort-wasm-simd-threaded.jsep.mjs"];
+const PRECACHE = ["/", "/visitor", "/noor", "/settings", "/demo"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(VERSION).then((c) => c.addAll(PRECACHE)).then(() => self.skipWaiting()));

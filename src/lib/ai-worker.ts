@@ -7,6 +7,7 @@ import e5Model from "@/assets/models/e5-model.asset.json";
 import e5Tok from "@/assets/models/e5-tokenizer.asset.json";
 import whisperDec from "@/assets/models/whisper-decoder.asset.json";
 import ortWasm from "@/assets/models/ort-wasm.asset.json";
+import ortMjs from "onnxruntime-web/dist/ort-wasm-simd-threaded.jsep.mjs?url";
 
 export const MODEL_CACHE = "harvestsignal-models-v1";
 
@@ -29,7 +30,6 @@ const localFetch = async (input: RequestInfo | URL, init?: RequestInit) => {
   const key = url.pathname;
   const hit = await cache.match(key);
   if (hit) return hit;
-  console.log("HSFETCH", key, REMAP[key] ?? "-");
   const res = await realFetch(REMAP[key] ?? key);
   if (res.ok) await cache.put(key, res.clone());
   return res;
@@ -43,7 +43,7 @@ env.useBrowserCache = false;
 self.fetch = localFetch as typeof fetch;
 (env as unknown as { useWasmCache: boolean }).useWasmCache = false;
 const wasm = env.backends.onnx.wasm!;
-wasm.wasmPaths = { mjs: "/ort/ort-wasm-simd-threaded.jsep.mjs", wasm: "/ort/ort-wasm-simd-threaded.jsep.wasm" } as never;
+wasm.wasmPaths = { mjs: ortMjs, wasm: "/ort/ort-wasm-simd-threaded.jsep.wasm" } as never;
 wasm.numThreads = 1;
 
 type Msg = { id: number; type: "init-embed" | "embed" | "init-stt" | "transcribe"; payload?: unknown };
