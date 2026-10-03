@@ -7,7 +7,7 @@ import e5Model from "@/assets/models/e5-model.asset.json";
 import e5Tok from "@/assets/models/e5-tokenizer.asset.json";
 import whisperDec from "@/assets/models/whisper-decoder.asset.json";
 import ortWasm from "@/assets/models/ort-wasm.asset.json";
-import ortMjs from "onnxruntime-web/dist/ort-wasm-simd-threaded.jsep.mjs?url";
+import ortMjs from "../../node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.jsep.mjs?url";
 
 export const MODEL_CACHE = "harvestsignal-models-v1";
 
