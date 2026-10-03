@@ -3,6 +3,7 @@ import { useState } from "react";
 import { RotateCcw, Zap, HelpCircle, Sprout } from "lucide-react";
 import { Screen, BigButton, ModelLoader } from "@/components/hs";
 import { meta } from "@/lib/meta";
+import { submitFeedback } from "@/lib/submit";
 import { resetDemo } from "@/lib/db";
 import { DEMO_MESSAGES } from "@/lib/taxonomy";
 import { CATEGORY_NAME } from "@/lib/i18n";
@@ -20,7 +21,6 @@ function Demo() {
 
   const run = async (msgs: { lang: "en" | "fr" | "de"; text: string }[]) => {
     setBusy(true);
-    const { submitFeedback } = await import("@/lib/submit");
     for (const m of msgs) {
       const { result } = await submitFeedback(m.text, m.lang, crypto.randomUUID(), "text");
       const lbl = result.label === "not_sure" ? "Not sure" : CATEGORY_NAME.en[result.label];

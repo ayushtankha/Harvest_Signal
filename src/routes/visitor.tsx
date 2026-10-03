@@ -3,6 +3,9 @@ import { useEffect, useRef, useState } from "react";
 import { Mic, Square, Send, Heart, Loader2, ShieldCheck } from "lucide-react";
 import { Screen, BigButton, ModelLoader } from "@/components/hs";
 import { meta } from "@/lib/meta";
+import { submitFeedback } from "@/lib/submit";
+import { startRecording, speechToText, type Recorder } from "@/lib/speech";
+import { loadSttModel } from "@/lib/ai";
 import { VISITOR_T } from "@/lib/i18n";
 import { DEMO_MESSAGES, type VisitorLang } from "@/lib/taxonomy";
 import { useAI } from "@/lib/hooks";
@@ -26,13 +29,13 @@ function Visitor() {
   const [err, setErr] = useState<string | null>(null);
   const [mode, setMode] = useState<"text" | "voice">("text");
   const sessionRef = useRef<string | null>(null);
-  const recRef = useRef<import("@/lib/speech").Recorder | null>(null);
+  const recRef = useRef<Recorder | null>(null);
   const ai = useAI();
   const t = VISITOR_T[lang];
 
   useEffect(() => {
     sessionRef.current = crypto.randomUUID();
-    import("@/lib/ai").then((m) => m.loadSttModel());
+    loadSttModel();
   }, []);
 
   const send = async (msg: string, mode: "text" | "voice") => {
@@ -40,8 +43,7 @@ function Visitor() {
     setPhase("sending");
     setErr(null);
     try {
-      const { submitFeedback } = await import("@/lib/submit");
-      await submitFeedback(msg, lang, sessionRef.current!, mode);
+        await submitFeedback(msg, lang, sessionRef.current!, mode);
       setText("");
       setPhase("thanks");
     } catch (e) {
@@ -53,7 +55,6 @@ function Visitor() {
   const startVoice = async () => {
     setErr(null);
     try {
-      const { startRecording } = await import("@/lib/speech");
       recRef.current = await startRecording();
       setPhase("recording");
     } catch {
@@ -65,7 +66,6 @@ function Visitor() {
     if (!r) return;
     setPhase("transcribing");
     try {
-      const { speechToText } = await import("@/lib/speech");
       const audio = await r.stop();
       const said = await speechToText(audio, lang);
       recRef.current = null;
