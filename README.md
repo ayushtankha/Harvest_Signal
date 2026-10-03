@@ -52,7 +52,7 @@ Whisper-tiny q8 is the smallest variant that runs reliably in the browser; total
 - **Prototype examples are synthetic**, hand-written: 4 per language × 3 languages = 12 per category (`taxonomy.ts`).
 - No public dataset was used. **Real farm-visit messages are not represented.**
 - Not covered: slang, mixed-language messages, low-resource languages, noisy audio. Accuracy may drop outside EN/FR/DE.
-- Calibration (demo set, on-device): EN/FR/DE harvest sentences → Harvest walk with scores 0.93–0.95 and margins 0.018–0.026; an unrelated message → Other; the fixed ambiguous message \"Can I pay by card for the coffee tasting and the taxi?\" → Not sure (coffee tasting 0.846 vs transport 0.843, margin below 0.012). Defaults: `minScore 0.84`, `minMargin 0.012`. This is a tiny set — recalibrate with real data.
+- Calibration (demo set, on-device): EN/FR/DE harvest sentences → Harvest walk with scores 0.93–0.95 and margins 0.018–0.026; an unrelated message → Other; the fixed ambiguous message "Can I pay by card for the coffee tasting and the taxi?" → Not sure (coffee tasting 0.846 vs transport 0.843, margin below 0.012). Defaults: `minScore 0.84`, `minMargin 0.012`. This is a tiny set — recalibrate with real data.
 - The app says **"Not sure"** rather than guessing.
 
 ## Privacy
