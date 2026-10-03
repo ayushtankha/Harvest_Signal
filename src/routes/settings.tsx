@@ -118,18 +118,20 @@ function SettingsPage() {
 function OfflineProof() {
   const ai = useAI();
   const online = useOnline();
-  const [info, setInfo] = useState<{ sw: boolean; version: string | null; records: number; modelFiles: string[] }>({ sw: false, version: null, records: 0, modelFiles: [] });
+  const [info, setInfo] = useState<{ sw: boolean; version: string | null; files: number; records: number; modelFiles: string[] }>({ sw: false, version: null, files: 0, records: 0, modelFiles: [] });
   useEffect(() => {
     (async () => {
       const sw = !!navigator.serviceWorker?.controller;
-      const version = await swVersion();
+      const v = await swVersion();
+      const version = v?.version ?? null;
+      const files = v?.files ?? 0;
       const records = await countFeedback();
       let modelFiles: string[] = [];
       if ("caches" in window) {
         const c = await caches.open("harvestsignal-models-v1");
         modelFiles = (await c.keys()).map((r) => new URL(r.url).pathname.split("/").slice(-2).join("/"));
       }
-      setInfo({ sw, version, records, modelFiles });
+      setInfo({ sw, version, files, records, modelFiles });
     })();
   }, [ai.embed, ai.stt]);
 
@@ -148,7 +150,8 @@ function OfflineProof() {
       <ul className="flex flex-col gap-3 text-lg">
         {row(ai.embed === "ready", "Text model loaded locally", ai.embed)}
         {row(ai.stt === "ready", "Speech model loaded locally", ai.stt)}
-        {row(info.sw, "Service worker active", info.sw ? undefined : "Active on the published app only")}
+        {row(info.sw, `Service worker controls this page: ${info.sw ? "yes" : "no"}`, info.sw ? undefined : "Published app only — reload once after first visit")}
+        {row(info.files > 0, `Saved app files: ${info.files}`)}
         {row(info.modelFiles.length > 0, `Cached model files: ${info.modelFiles.length}`, info.modelFiles.join(", "))}
         {row(true, "Network not required for classification", online ? "Currently online" : "Currently offline")}
         {row(true, `Local feedback records: ${info.records}`)}
