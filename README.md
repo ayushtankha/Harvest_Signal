@@ -65,12 +65,22 @@ Fixed taxonomy only · not-sure on low score or small margin · evidence shown a
 Whisper-tiny is weak in noise and on cheap phones; voice is optional and text always works. First load is large. iOS may evict caches when storage is low.
 
 ## Airplane-mode test
-1. Open the published app online; wait for the ✓ next to the chip icon (and 🎙 100% on the Visitor screen).
-2. Settings → Offline proof: model files cached, service worker active.
-3. Enable airplane mode, reload the app.
-4. Demo → "3 harvest messages" → Open Noor: Harvest walk = 3, opportunity card in Albanian → Create Tour.
-5. Demo → Reset → "1 ambiguous message" → result "Not sure"; Noor shows "Nuk ka mjaft të dhëna — pyet një vizitor."
-6. Real phone: Visitor → Speak a harvest request in EN, FR and DE (fresh session each time). If offline voice works, each shows a local transcript and gets classified; together they trigger the opportunity. If voice is unavailable, the screen says so and typing remains the guaranteed offline path.
+Open the published app once online, wait for the application and models to cache, reload once so the service worker controls the page, then enable airplane mode and test navigation between all core routes.
+
+A. Open the PUBLISHED app online.
+B. Wait for the ✓ next to the chip icon (and 🎙 100% on the Visitor screen).
+C. Reload once.
+D. Settings → Offline proof: "Service worker controls this page: yes", saved app files > 0, model files cached.
+E. Turn on airplane mode.
+F. Reload the page.
+G. Tap Visitor.
+H. Go back, tap Noor.
+I. Open Settings.
+J. Open Demo.
+K. Demo → "3 harvest messages" → Open Noor: Harvest walk = 3, opportunity card in Albanian → Create Tour. Then Reset → "1 ambiguous message" → "Not sure"; Noor shows "Nuk ka mjaft të dhëna — pyet një vizitor."
+L. Real phone voice: speak a harvest request in EN, FR and DE (fresh session each time). If offline voice works, each shows a local transcript and is classified; if not, the screen says voice is unavailable and typing remains the guaranteed offline path.
+
+How it works: on first online load the service worker reads the home page and every script, style and font it references (recursively), so every page's code is saved before the first offline navigation. The cache name is derived from the build's file list, so each publish replaces the old copy. If something is missing offline, the app shows "This part of the app isn't saved on this phone yet — open it once online" instead of a blank page.
 
 Two separate safeguards: **Not sure** = the AI is uncertain about one message; **Not enough data — ask a visitor** = fewer than 3 submissions for a category.
 
