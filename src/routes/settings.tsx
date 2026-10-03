@@ -118,6 +118,8 @@ function SettingsPage() {
 function OfflineProof() {
   const ai = useAI();
   const online = useOnline();
+  const [published, setPublished] = useState(true);
+  useEffect(() => setPublished(isPublishedHost()), []);
   const [info, setInfo] = useState<{ sw: boolean; version: string | null; files: number; records: number; modelFiles: string[] }>({ sw: false, version: null, files: 0, records: 0, modelFiles: [] });
   useEffect(() => {
     (async () => {
@@ -150,7 +152,7 @@ function OfflineProof() {
       <ul className="flex flex-col gap-3 text-lg">
         {row(ai.embed === "ready", "Text model loaded locally", ai.embed)}
         {row(ai.stt === "ready", "Speech model loaded locally", ai.stt)}
-        {row(info.sw, `Service worker controls this page: ${info.sw ? "yes" : "no"}`, info.sw ? undefined : isPublishedHost() ? "Still saving — keep Wi-Fi on; the app reloads itself once when ready" : `Offline saving is off on this address (editor preview). Open ${PUBLISHED_URL} in Chrome instead.`)}
+        {row(info.sw, `Service worker controls this page: ${info.sw ? "yes" : "no"}`, info.sw ? undefined : published ? "Still saving — keep Wi-Fi on; the app reloads itself once when ready" : `Offline saving is off on this address (editor preview). Open ${PUBLISHED_URL} in Chrome instead.`)}
         {row(info.files > 0, `Saved app files: ${info.files}`)}
         {row(info.modelFiles.length > 0, `Cached model files: ${info.modelFiles.length}`, info.modelFiles.join(", "))}
         {row(true, "Network not required for classification", online ? "Currently online" : "Currently offline")}
