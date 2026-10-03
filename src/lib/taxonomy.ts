@@ -181,3 +181,10 @@ export const DEMO_MESSAGES: { lang: VisitorLang; text: string }[] = [
   { lang: "fr", text: "Nous aimerions voir comment le café est récolté." },
   { lang: "de", text: "Wir würden gerne sehen, wie der Kaffee geerntet wird." },
 ];
+
+/** Deterministic ambiguous message: with the default thresholds the real model
+ *  scores coffee tasting 0.846 vs transport 0.843 (margin < 0.012) → "Not sure". */
+export const AMBIGUOUS_DEMO: { lang: VisitorLang; text: string } = {
+  lang: "en",
+  text: "Can I pay by card for the coffee tasting and the taxi?",
+};

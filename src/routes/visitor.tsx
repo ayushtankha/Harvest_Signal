@@ -28,6 +28,7 @@ function Visitor() {
   const [phase, setPhase] = useState<"input" | "recording" | "transcribing" | "sending" | "thanks">("input");
   const [err, setErr] = useState<string | null>(null);
   const [mode, setMode] = useState<"text" | "voice">("text");
+  const [micBlocked, setMicBlocked] = useState(false);
   const sessionRef = useRef<string | null>(null);
   const recRef = useRef<Recorder | null>(null);
   const ai = useAI();
@@ -58,7 +59,7 @@ function Visitor() {
       recRef.current = await startRecording();
       setPhase("recording");
     } catch {
-      setErr("Microphone not allowed");
+      setMicBlocked(true);
     }
   };
   const stopVoice = async () => {
@@ -121,16 +122,16 @@ function Visitor() {
 
       <button
         onClick={phase === "recording" ? stopVoice : startVoice}
-        disabled={!voiceReady || (busy && phase !== "recording")}
+        disabled={!voiceReady || micBlocked || (busy && phase !== "recording")}
         className={cn("flex min-h-32 flex-col items-center justify-center gap-2 rounded-3xl text-2xl font-bold shadow-md disabled:opacity-50",
           phase === "recording" ? "bg-destructive text-destructive-foreground animate-pulse" : "bg-accent text-accent-foreground")}
       >
         {phase === "recording" ? <Square className="h-12 w-12" /> : phase === "transcribing" ? <Loader2 className="h-12 w-12 animate-spin" /> : <Mic className="h-12 w-12" />}
         {phase === "recording" ? t.stop : phase === "transcribing" ? t.transcribing : t.speak}
       </button>
-      {!voiceReady && (
-        <p className="-mt-3 text-center text-sm text-muted-foreground">
-          {ai.stt === "loading" ? `🎙 ${Math.round(ai.sttProgress)}%` : t.voiceOff}
+      {(!voiceReady || micBlocked) && (
+        <p role="status" className="-mt-3 text-center text-sm font-bold text-muted-foreground">
+          {ai.stt === "error" || micBlocked ? t.voiceNo : ai.stt === "loading" ? `🎙 ${Math.round(ai.sttProgress)}%` : t.voiceOff}
         </p>
       )}
 

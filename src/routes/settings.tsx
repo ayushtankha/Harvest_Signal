@@ -92,7 +92,7 @@ function SettingsPage() {
         <h2 className="text-2xl font-semibold">Classification</h2>
         {num("minScore", 0.005, "Minimum similarity", `Below this → "Not sure". Default ${DEFAULT_THRESHOLDS.minScore}`)}
         {num("minMargin", 0.001, "Minimum gap to 2nd category", `Smaller gap → "Not sure". Default ${DEFAULT_THRESHOLDS.minMargin}`)}
-        {num("windowDays", 1, "Season window (days)", "Opportunity needs 3 visitors inside this window.")}
+        {num("windowDays", 1, "Season window (days)", "Opportunity needs 3 separate anonymous visitor submissions (one per session) inside this window.")}
         <button className="flex items-center gap-2 self-start text-base underline"
           onClick={() => saveSettings({ ...DEFAULT_THRESHOLDS, windowDays: 90, categoryNames: {} })}>
           <RefreshCw className="h-4 w-4" /> Restore defaults

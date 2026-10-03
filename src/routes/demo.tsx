@@ -5,7 +5,7 @@ import { Screen, BigButton, ModelLoader } from "@/components/hs";
 import { meta } from "@/lib/meta";
 import { submitFeedback } from "@/lib/submit";
 import { resetDemo } from "@/lib/db";
-import { DEMO_MESSAGES } from "@/lib/taxonomy";
+import { DEMO_MESSAGES, AMBIGUOUS_DEMO } from "@/lib/taxonomy";
 import { CATEGORY_NAME } from "@/lib/i18n";
 import { useAI } from "@/lib/hooks";
 
@@ -36,7 +36,7 @@ function Demo() {
         <li>Open the app once online, wait for ✓.</li>
         <li>Turn on airplane mode.</li>
         <li>Tap “3 harvest messages”, then open Noor.</li>
-        <li>Reset, then tap “1 unrelated message”.</li>
+        <li>Reset, then tap “1 ambiguous message” → Not sure. Noor shows “Not enough data”.</li>
       </ol>
       <BigButton className="bg-card text-foreground ring-1 ring-border" onClick={async () => { await resetDemo(); setLog(["Reset ✓"]); }}>
         <RotateCcw className="h-7 w-7" /> Reset demo
@@ -45,8 +45,8 @@ function Demo() {
         <Zap className="h-7 w-7" /> 3 harvest messages
       </BigButton>
       <BigButton className="bg-accent text-accent-foreground" disabled={busy || ai.embed !== "ready"}
-        onClick={() => run([{ lang: "en", text: "My phone needs charging and the wifi password please." }])}>
-        <HelpCircle className="h-7 w-7" /> 1 unrelated message
+        onClick={() => run([AMBIGUOUS_DEMO])}>
+        <HelpCircle className="h-7 w-7" /> 1 ambiguous message (Not sure)
       </BigButton>
       {log.length > 0 && (
         <ul className="rounded-2xl bg-card p-4 font-mono text-sm ring-1 ring-border">{log.map((l, i) => <li key={i}>{l}</li>)}</ul>

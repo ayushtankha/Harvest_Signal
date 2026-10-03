@@ -24,7 +24,7 @@ export const CATEGORY_NAME: Record<NoorLang, Record<Category, string>> = {
   },
 };
 
-/** Fixed sentence: "N visitors asked about X" in Noor's language. */
+/** Fixed sentence: "N separate visitor submissions asked about X" in Noor's language. */
 export const INSIGHT: Record<NoorLang, Record<Category, (n: number) => string>> = {
   sq: {
     harvest_walk: (n) => `${n} vizitorë kanë kërkuar një shëtitje gjatë korrjes.`,
@@ -36,13 +36,13 @@ export const INSIGHT: Record<NoorLang, Record<Category, (n: number) => string>> 
     other: (n) => `${n} vizitorë kanë lënë mesazhe të tjera.`,
   },
   en: {
-    harvest_walk: (n) => `${n} visitors asked for a walk during the harvest.`,
-    coffee_tasting: (n) => `${n} visitors asked to taste the coffee.`,
-    roasting: (n) => `${n} visitors asked to see the roasting.`,
-    meals: (n) => `${n} visitors asked for local meals.`,
-    prices: (n) => `${n} visitors asked about prices.`,
-    transport: (n) => `${n} visitors asked about transport.`,
-    other: (n) => `${n} visitors left other messages.`,
+    harvest_walk: (n) => `${n} separate visitor submissions asked for a walk during the harvest.`,
+    coffee_tasting: (n) => `${n} separate visitor submissions asked to taste the coffee.`,
+    roasting: (n) => `${n} separate visitor submissions asked to see the roasting.`,
+    meals: (n) => `${n} separate visitor submissions asked for local meals.`,
+    prices: (n) => `${n} separate visitor submissions asked about prices.`,
+    transport: (n) => `${n} separate visitor submissions asked about transport.`,
+    other: (n) => `${n} separate visitor submissions left other messages.`,
   },
 };
 
@@ -112,7 +112,7 @@ export const T = {
   },
 } satisfies Record<NoorLang, Record<string, string>>;
 
-type VKeys = "header" | "placeholder" | "send" | "speak" | "stop" | "listening" | "transcribing" | "thanks" | "another" | "voiceOff" | "privacy";
+type VKeys = "header" | "placeholder" | "send" | "speak" | "stop" | "listening" | "transcribing" | "thanks" | "another" | "voiceOff" | "voiceNo" | "privacy";
 export const VISITOR_T: Record<VisitorLang, Record<VKeys, string>> = {
   en: {
     header: "Tell Noor what you loved or wanted to see.",
@@ -125,6 +125,7 @@ export const VISITOR_T: Record<VisitorLang, Record<VKeys, string>> = {
     thanks: "Thank you",
     another: "Next visitor",
     voiceOff: "Voice not available yet — please type",
+    voiceNo: "Voice unavailable on this device — please type",
     privacy: "No names. Stays on this device.",
   },
   fr: {
@@ -138,6 +139,7 @@ export const VISITOR_T: Record<VisitorLang, Record<VKeys, string>> = {
     thanks: "Merci",
     another: "Visiteur suivant",
     voiceOff: "Voix pas encore disponible — écrivez",
+    voiceNo: "Voix indisponible sur cet appareil — écrivez",
     privacy: "Aucun nom. Reste sur cet appareil.",
   },
   de: {
@@ -151,6 +153,7 @@ export const VISITOR_T: Record<VisitorLang, Record<VKeys, string>> = {
     thanks: "Danke",
     another: "Nächster Besuch",
     voiceOff: "Sprache noch nicht verfügbar — bitte tippen",
+    voiceNo: "Sprache auf diesem Gerät nicht verfügbar — bitte tippen",
     privacy: "Keine Namen. Bleibt auf diesem Gerät.",
   },
 };
