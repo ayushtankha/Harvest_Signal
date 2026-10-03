@@ -3,7 +3,14 @@
 Offline-first Small AI prototype — World Bank × Hack-Nation "Small AI for Development", Tourism track.
 
 ## Problem & user
-Noor runs a small coffee farm that receives a few foreign visitors. Language barriers and weak connectivity mean she never learns what visitors actually wanted. HarvestSignal lets visitors leave short feedback (voice or text, EN/FR/DE); the phone sorts it locally into fixed tourism categories and tells Noor — in her local language (prototype localization: **Albanian**) — when at least 3 separate visitors want the same thing. **The AI only informs; Noor decides.** Nothing is published, sent or booked automatically.
+Noor runs a small coffee farm that receives a few foreign visitors. Language barriers and weak connectivity mean she never learns what visitors actually wanted. HarvestSignal lets visitors leave short feedback (voice or text, EN/FR/DE); the phone sorts it locally into fixed tourism categories and tells Noor — in her local language (prototype localization: **Albanian**) — when at least 3 separate anonymous visitor submissions ask for the same thing within the season window. A session ID prevents repeat submissions within one session from inflating the count; it does not identify or verify a real person. **The AI only informs; Noor decides.** Nothing is published, sent or booked automatically.
+
+## Input and output
+- **Voice is input only.** It is turned into text on the device (local Whisper-tiny), then follows exactly the same path as typed text.
+- **Noor receives text only** (Albanian or English, fixed translations).
+- No text-to-speech, no voice output, no voice-to-voice.
+- No runtime dependency on ElevenLabs, Anthropic, Bright Data or any cloud service. No browser Web Speech API.
+- If the speech model can't load or the microphone is blocked, the Visitor screen says "Voice unavailable on this device — please type". It never falls back to an online service.
 
 ## Why AI
 Visitors phrase the same wish in many ways and languages ("see the harvest", "voir la récolte", "Ernte sehen"). A multilingual sentence-embedding model maps them to one meaning without translation or an internet connection.
@@ -14,7 +21,7 @@ voice ─► MediaRecorder ─► 16 kHz PCM ─► Whisper-tiny (local) ─┐
 text  ───────────────────────────────────────────────────────┴─► "query: " + text
    ─► multilingual-e5-small (local, Web Worker) ─► cosine vs synthetic prototypes
    ─► per-category mean(top-3) ─► minScore + minMargin rule ─► category | NOT SURE
-   ─► IndexedDB (anonymous record) ─► ≥3 distinct sessions in season window ─► Opportunity
+   ─► IndexedDB (anonymous record) ─► ≥3 separate anonymous submissions (one per session) in season window ─► Opportunity
    ─► fixed Albanian/English text + fixed tour template ─► Noor reviews
 ```
 - `src/lib/classifier.ts` — pure scoring + not-sure rule (thresholds editable in Settings)
@@ -31,20 +38,21 @@ text  ────────────────────────�
 - The service worker caches pages and app code so the app opens in airplane mode. It is disabled in the editor preview and only runs on the published URL.
 - No backend, no cloud AI, no accounts, no CDN.
 
-## Models
-| Model | Use | Size (quantized) | License |
-|---|---|---|---|
-| Xenova/multilingual-e5-small (ONNX q8) | text classification | ~118 MB + 17 MB tokenizer | MIT |
-| Xenova/whisper-tiny (ONNX q8) | offline speech-to-text | ~41 MB | Apache-2.0 |
-| ONNX Runtime Web (WASM) | inference engine | ~28 MB | MIT |
+## Models and runtime (actually shipped)
+| Component | Version / variant | Use | Total download | License (checked at source) |
+|---|---|---|---|---|
+| Xenova/multilingual-e5-small | ONNX `model_quantized.onnx` (q8) + tokenizer | text classification | 135.4 MB (118.3 model + 17.1 tokenizer) | MIT (from intfloat/multilingual-e5-small model card; the Xenova ONNX conversion has no separate license tag) |
+| Xenova/whisper-tiny | ONNX q8 encoder + q8 merged decoder + tokenizer/config | offline speech-to-text | 45.2 MB (10.1 encoder + 30.7 decoder + 4.4 tokenizer/config) | Apache-2.0 (Hugging Face model card) |
+| onnxruntime-web | 1.31.0-dev, `ort-wasm-simd-threaded.jsep.wasm` | inference engine | 28.4 MB | MIT (npm package) |
+| @huggingface/transformers | 4.3.0 (bundled in app code) | pipelines | in app bundle | Apache-2.0 (npm package) |
 
-No model was trained. First load downloads ~200 MB once; afterwards no network is needed.
+Whisper-tiny q8 is the smallest variant that runs reliably in the browser; total speech download is 45.2 MB. **Total first-load download ≈ 209 MB**, once; afterwards no network is needed. No model was trained or fine-tuned.
 
 ## Data
 - **Prototype examples are synthetic**, hand-written: 4 per language × 3 languages = 12 per category (`taxonomy.ts`).
 - No public dataset was used. **Real farm-visit messages are not represented.**
 - Not covered: slang, mixed-language messages, low-resource languages, noisy audio. Accuracy may drop outside EN/FR/DE.
-- Calibration (demo set, on-device): EN/FR/DE harvest sentences → Harvest walk with scores 0.93–0.95 and margins 0.018–0.026; an unrelated message → Other. Defaults: `minScore 0.84`, `minMargin 0.012`. This is a tiny set — recalibrate with real data.
+- Calibration (demo set, on-device): EN/FR/DE harvest sentences → Harvest walk with scores 0.93–0.95 and margins 0.018–0.026; an unrelated message → Other; the fixed ambiguous message \"Can I pay by card for the coffee tasting and the taxi?\" → Not sure (coffee tasting 0.846 vs transport 0.843, margin below 0.012). Defaults: `minScore 0.84`, `minMargin 0.012`. This is a tiny set — recalibrate with real data.
 - The app says **"Not sure"** rather than guessing.
 
 ## Privacy
@@ -61,7 +69,10 @@ Whisper-tiny is weak in noise and on cheap phones; voice is optional and text al
 2. Settings → Offline proof: model files cached, service worker active.
 3. Enable airplane mode, reload the app.
 4. Demo → "3 harvest messages" → Open Noor: Harvest walk = 3, opportunity card in Albanian → Create Tour.
-5. Demo → Reset → "1 unrelated message" → Noor shows "Nuk ka mjaft të dhëna — pyet një vizitor."
+5. Demo → Reset → "1 ambiguous message" → result "Not sure"; Noor shows "Nuk ka mjaft të dhëna — pyet një vizitor."
+6. Real phone: Visitor → Speak a harvest request in EN, FR and DE (fresh session each time). If offline voice works, each shows a local transcript and gets classified; together they trigger the opportunity. If voice is unavailable, the screen says so and typing remains the guaranteed offline path.
+
+Two separate safeguards: **Not sure** = the AI is uncertain about one message; **Not enough data — ask a visitor** = fewer than 3 submissions for a category.
 
 ## Tests
-`bunx vitest run` — opportunity trigger (1/2/3 submissions, duplicate session, window) and not-sure rules. Multilingual classification and offline behaviour are verified in a real browser with the network disabled.
+`bunx vitest run` — opportunity trigger (1/2/3 submissions, duplicate session, window) not-sure rules (low score, small margin) and "Delete all data" clearing local storage. Multilingual classification and offline behaviour are verified in a real browser with the network disabled.
