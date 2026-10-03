@@ -65,7 +65,7 @@ Fixed taxonomy only · not-sure on low score or small margin · evidence shown a
 Whisper-tiny is weak in noise and on cheap phones; voice is optional and text always works. First load is large. iOS may evict caches when storage is low.
 
 ## Airplane-mode test
-Open the published app once online and keep Wi-Fi on until the screen says "Ready for airplane mode" (AI saved, every page saved, and the service worker controls the page — the app reloads itself once if needed). Only then enable airplane mode and test navigation between all core routes.
+Open the published app once online and keep Wi-Fi on until the screen says "Ready for airplane mode" (text AI and voice model saved, every page saved, and the service worker controls the page — the app reloads itself once if needed). Only then enable airplane mode, test navigation between all core routes, and speak one request each in EN, FR and DE on the Visitor page (allow the microphone once).
 
 A. Open the PUBLISHED app online.
 B. Wait for the ✓ next to the chip icon (and 🎙 100% on the Visitor screen).

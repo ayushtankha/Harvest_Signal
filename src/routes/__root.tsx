@@ -127,8 +127,10 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   useEffect(() => {
     registerServiceWorker();
-    // Start loading the on-device model right away (cached after first load).
-    import("../lib/ai").then((m) => m.loadEmbedModel().catch(() => {}));
+    // Load both on-device models right away (text AI, then speech) so voice works offline too.
+    import("../lib/ai").then((m) =>
+      m.loadEmbedModel().catch(() => {}).finally(() => m.loadSttModel()),
+    );
   }, []);
 
   return (
