@@ -3,7 +3,7 @@
 Offline-first Small AI prototype — World Bank × Hack-Nation "Small AI for Development", Tourism track.
 
 ## Problem & user
-Noor runs a small coffee farm that receives a few foreign visitors. Language barriers and weak connectivity mean she never learns what visitors actually wanted. HarvestSignal lets visitors leave short feedback (voice or text, EN/FR/DE); the phone sorts it locally into fixed tourism categories and tells Noor — in her local language (prototype localization: **Albanian**) — when at least 3 separate anonymous visitor submissions ask for the same thing within the season window. A session ID prevents repeat submissions within one session from inflating the count; it does not identify or verify a real person. **The AI only informs; Noor decides.** Nothing is published, sent or booked automatically.
+Noor runs a small coffee farm that receives a few foreign visitors. Language barriers and weak connectivity mean she never learns what visitors actually wanted. HarvestSignal lets visitors leave short feedback (voice or text, EN/FR/DE); the phone sorts it locally into fixed tourism categories and tells Noor — in her local language (prototype localization: **Albanian**) — when at least 3 separate anonymous visitor submissions ask for the same thing within the season window. Repeat submissions of the same category within one visitor session are ignored using an in-memory check only; nothing identifies or verifies a real person, and these are not necessarily 3 unique people. **The AI only informs; Noor decides.** Nothing is published, sent or booked automatically.
 
 ## Input and output
 - **Voice is input only.** It is turned into text on the device (local Whisper-tiny), then follows exactly the same path as typed text.
@@ -21,11 +21,11 @@ voice ─► MediaRecorder ─► 16 kHz PCM ─► Whisper-tiny (local) ─┐
 text  ───────────────────────────────────────────────────────┴─► "query: " + text
    ─► multilingual-e5-small (local, Web Worker) ─► cosine vs synthetic prototypes
    ─► per-category mean(top-3) ─► minScore + minMargin rule ─► category | NOT SURE
-   ─► IndexedDB (anonymous record) ─► ≥3 separate anonymous submissions (one per session) in season window ─► Opportunity
+   ─► IndexedDB (anonymous record) ─► ≥3 separate anonymous submissions ("Not sure" never counts) in season window ─► Opportunity
    ─► fixed Albanian/English text + fixed tour template ─► Noor reviews
 ```
 - `src/lib/classifier.ts` — pure scoring + not-sure rule (thresholds editable in Settings)
-- `src/lib/opportunity.ts` — distinct-session counting, season window, trigger
+- `src/lib/opportunity.ts` — accepted-submission counting, season window, trigger, record whitelist
 - `src/lib/ai-worker.ts` — on-device inference (Transformers.js + ONNX Runtime WASM)
 - `src/lib/speech.ts` — voice adapter (offline STT), audio discarded after transcription
 - `src/lib/taxonomy.ts` — fixed taxonomy + synthetic prototype examples
@@ -56,7 +56,11 @@ Whisper-tiny q8 is the smallest variant that runs reliably in the browser; total
 - The app says **"Not sure"** rather than guessing.
 
 ## Privacy
-Stored per submission: random ID, random anonymous session ID, category, top-2 scores, language, input mode, timestamp. **No raw text, no audio, no names or contacts.** Repeated submissions from one session count once. "Delete all data" wipes everything; optional PIN protects Settings. Lost device: data only exists on that device, no cloud copy. Speaker identity is never inferred.
+Stored per submission (IndexedDB, whitelisted): `id` (random), `ts`, `language`, `inputMode` (voice/text), `label` (category or not_sure), `accepted` (threshold result), `score` (similarity score), `secondCategory`, `second` (margin = score − second). **No message, transcript, audio, names, contacts, session or device identifier.** Text and audio exist only in memory during classification. Repeat taps of the same category within one visitor session are blocked in memory, never stored.
+Migration: on upgrade to DB version 2, every existing record is rewritten to the whitelist (e.g. old `sessionId` removed); records missing required fields are deleted.
+Noor's "Why this opportunity?" panel shows only these fields: language · Voice/Text · date · category · similarity score. The similarity score is not a probability and is never called "confidence".
+Three states: **Opportunity detected** = 3+ accepted submissions in one category in the window · **Not enough data — ask a visitor** = no category has 3 yet (shown as "N of 3") · **Not sure** = the AI wasn't confident about one message; it never counts.
+Albanian strings added for this panel and the suggested-opportunity lines are marked in `i18n.ts` as needing native-speaker review. "Delete all data" wipes everything; optional PIN protects Settings. Lost device: data only exists on that device, no cloud copy. Speaker identity is never inferred.
 
 ## Guardrails
 Fixed taxonomy only · not-sure on low score or small margin · evidence shown as counts, average similarity and languages (no invented confidence labels) · tour drafts come from fixed templates · human always decides.
@@ -147,4 +151,4 @@ How offline works: on first online load the service worker reads the home page a
 Two separate safeguards: **Not sure** = the AI is uncertain about one message; **Not enough data — ask a visitor** = fewer than 3 submissions for a category.
 
 ## Tests
-`bunx vitest run` — opportunity trigger (1/2/3 submissions, duplicate session, window), not-sure rules (low score, small margin), "Delete all data" clearing local storage, evaluation metrics, and evaluation-set separation. The evaluation numbers above come from the real model in a browser, not from these unit tests.
+`bunx vitest run` — opportunity trigger (1/2/3 submissions, Not sure never counts, window, evidence rows from stored records), stored-record whitelist and legacy sanitization, similarity-score wording, not-sure rules (low score, small margin), "Delete all data" clearing local storage, evaluation metrics, and evaluation-set separation. The evaluation numbers above come from the real model in a browser, not from these unit tests.
