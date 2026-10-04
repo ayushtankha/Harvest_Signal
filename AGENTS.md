@@ -16,3 +16,4 @@
 - All user-facing output text is fixed translations in `i18n.ts`; never generate free text — guardrail requirement.
 - Service worker registers only on the published host, never in preview/iframe, and precaches the whole build by crawling HTML → referenced assets at install — avoids stale preview caches and keeps lazy route chunks available offline.
 - Browser-only modules used in submit flows are statically imported so they work offline without lazy chunk fetches.
+- Stored feedback records are whitelisted through `sanitizeRecord` in `opportunity.ts` (also applied by DB migration) — guarantees no visitor text/audio/identifiers persist.
