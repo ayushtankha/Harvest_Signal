@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Trash2, ShieldCheck, Lock, Check, X as XIcon, RefreshCw } from "lucide-react";
 import { Screen, BigButton } from "@/components/hs";
 import { meta } from "@/lib/meta";
-import { useAI, useAppData, useOnline } from "@/lib/hooks";
+import { useAI, useAppData, useOnline, useOfflineReady } from "@/lib/hooks";
 import { countFeedback, deleteAllData, saveSettings } from "@/lib/db";
 import { swVersion, isPublishedHost, PUBLISHED_URL } from "@/lib/sw-register";
 import { DEFAULT_THRESHOLDS } from "@/lib/classifier";
