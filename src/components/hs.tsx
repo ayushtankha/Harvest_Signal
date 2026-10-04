@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { ArrowLeft, WifiOff, Wifi, Cpu } from "lucide-react";
-import { useAI, useOnline, useCoreReady } from "@/lib/hooks";
+import { useAI, useOnline, useOfflineReady } from "@/lib/hooks";
 import { cn } from "@/lib/utils";
 
 export function Screen({ children, back, title }: { children: ReactNode; back?: string; title?: string }) {
@@ -25,9 +25,10 @@ export function Screen({ children, back, title }: { children: ReactNode; back?: 
 export function StatusBanner({ offlineText, onlineText }: { offlineText: string; onlineText: string }) {
   const online = useOnline();
   const ai = useAI();
-  const ready = useCoreReady();
-  const pct = Math.round(ai.embedProgress);
-  const failed = ai.embed === "error";
+  const appSaved = useOfflineReady();
+  const ready = ai.embed === "ready" && ai.stt === "ready" && appSaved;
+  const pct = Math.round((ai.embedProgress + ai.sttProgress) / 2);
+  const failed = ai.embed === "error" || ai.stt === "error";
   return (
     <div className={cn("flex items-center gap-3 rounded-2xl px-4 py-3 text-base font-semibold",
       online ? "bg-muted text-foreground" : "bg-secondary text-secondary-foreground")}>
@@ -57,9 +58,9 @@ export function BigButton({ children, className, ...p }: React.ButtonHTMLAttribu
 
 export function ModelLoader() {
   const ai = useAI();
-  const ready = useCoreReady();
-  const modelsReady = ai.embed === "ready";
-  if (ready) {
+  const appSaved = useOfflineReady();
+  const modelsReady = ai.embed === "ready" && ai.stt === "ready";
+  if (modelsReady && appSaved) {
     return (
       <div role="status" className="rounded-2xl bg-card p-4 text-base font-semibold ring-1 ring-border">
         ✓ Ready for airplane mode
@@ -73,8 +74,10 @@ export function ModelLoader() {
       </div>
     );
   }
-  const pct = ai.embedProgress;
-  const label = ai.embed === "error" ? "AI model failed to load" : "Preparing AI on this device";
+  const pct = (ai.embedProgress + ai.sttProgress) / 2;
+  const label = ai.embed === "error" ? "AI model failed to load"
+    : ai.stt === "error" ? "Voice model failed to load — typing still works"
+    : "Preparing AI and voice on this device";
   return (
     <div className="rounded-2xl bg-card p-4 ring-1 ring-border">
       <div className="mb-2 flex justify-between text-base font-semibold">

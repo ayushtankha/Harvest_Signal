@@ -2,23 +2,21 @@
 // Runs all AI inference on-device. No cloud calls: remote model loading is
 // disabled and every file is read from this app's own origin, then kept in
 // Cache Storage so it works offline afterwards.
-// Core (text) files: "harvestsignal-models-v1". Optional voice pack: read ONLY
-// from "harvestsignal-voice-v1" (installed from Settings); never fetched here.
 import { env, pipeline } from "@huggingface/transformers";
 import e5Model from "@/assets/models/e5-model.asset.json";
 import e5Tok from "@/assets/models/e5-tokenizer.asset.json";
-import ortWasm from "@/assets/models/ort-wasm-plain.asset.json";
-import ortMjs from "../../node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.mjs?url";
-import { VOICE_CACHE, isVoicePath } from "./voice-status";
+import whisperDec from "@/assets/models/whisper-decoder.asset.json";
+import ortWasm from "@/assets/models/ort-wasm.asset.json";
+import ortMjs from "../../node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.jsep.mjs?url";
 
 export const MODEL_CACHE = "harvestsignal-models-v1";
-const ORT_WASM_KEY = "/ort/ort-wasm-simd-threaded.wasm";
 
 // Large files live in the app's asset store (same origin) under other paths.
 const REMAP: Record<string, string> = {
   "/models/Xenova/multilingual-e5-small/onnx/model_quantized.onnx": e5Model.url,
   "/models/Xenova/multilingual-e5-small/tokenizer.json": e5Tok.url,
-  [ORT_WASM_KEY]: ortWasm.url,
+  "/models/Xenova/whisper-tiny/onnx/decoder_model_merged_quantized.onnx": whisperDec.url,
+  "/ort/ort-wasm-simd-threaded.jsep.wasm": ortWasm.url,
 };
 
 const realFetch = self.fetch.bind(self);
@@ -28,13 +26,8 @@ const localFetch = async (input: RequestInfo | URL, init?: RequestInit) => {
     throw new Error(`Blocked non-local request: ${url.href}`);
   }
   if (!url.pathname.startsWith("/models/") && !url.pathname.startsWith("/ort/")) return realFetch(input, init);
-  const key = url.pathname;
-  if (isVoicePath(key)) {
-    const hit = await (await caches.open(VOICE_CACHE)).match(key);
-    if (hit) return hit;
-    return new Response("voice pack not installed", { status: 404 });
-  }
   const cache = await caches.open(MODEL_CACHE);
+  const key = url.pathname;
   const hit = await cache.match(key);
   if (hit) return hit;
   const res = await realFetch(REMAP[key] ?? key);
@@ -50,10 +43,10 @@ env.useBrowserCache = false;
 self.fetch = localFetch as typeof fetch;
 (env as unknown as { useWasmCache: boolean }).useWasmCache = false;
 const wasm = env.backends.onnx.wasm!;
-wasm.wasmPaths = { mjs: ortMjs, wasm: ORT_WASM_KEY } as never;
+wasm.wasmPaths = { mjs: ortMjs, wasm: "/ort/ort-wasm-simd-threaded.jsep.wasm" } as never;
 wasm.numThreads = 1;
 
-type Msg = { id: number; type: "init-embed" | "embed" | "init-stt" | "transcribe" | "reset-stt"; payload?: unknown };
+type Msg = { id: number; type: "init-embed" | "embed" | "init-stt" | "transcribe"; payload?: unknown };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let embedder: Promise<any> | null = null;
@@ -78,22 +71,12 @@ function getStt() {
 
 const LANG = { en: "english", fr: "french", de: "german" } as const;
 
-// One-time cleanup of files earlier versions stored in the core cache
-// (old engine variant and voice files now living in the optional pack).
-caches.open(MODEL_CACHE).then(async (c) => {
-  for (const k of await c.keys()) {
-    const p = new URL(k.url).pathname;
-    if (p.includes("/whisper-tiny/") || p.endsWith(".jsep.wasm")) await c.delete(k);
-  }
-}).catch(() => {});
-
 self.onmessage = async (e: MessageEvent<Msg>) => {
   const { id, type, payload } = e.data;
   try {
     let result: unknown = null;
     if (type === "init-embed") await getEmbedder();
     else if (type === "init-stt") await getStt();
-    else if (type === "reset-stt") stt = null;
     else if (type === "embed") {
       const ex = await getEmbedder();
       const out = await ex(payload as string[], { pooling: "mean", normalize: true });

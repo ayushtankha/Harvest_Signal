@@ -8,7 +8,7 @@ import { startRecording, speechToText, type Recorder } from "@/lib/speech";
 import { loadSttModel } from "@/lib/ai";
 import { VISITOR_T } from "@/lib/i18n";
 import { DEMO_MESSAGES, type VisitorLang } from "@/lib/taxonomy";
-import { useAI, useVoiceInstalled } from "@/lib/hooks";
+import { useAI } from "@/lib/hooks";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/visitor")({
@@ -32,13 +32,12 @@ function Visitor() {
   const sessionRef = useRef<string | null>(null);
   const recRef = useRef<Recorder | null>(null);
   const ai = useAI();
-  const voiceInstalled = useVoiceInstalled();
   const t = VISITOR_T[lang];
 
   useEffect(() => {
     sessionRef.current = crypto.randomUUID();
+    loadSttModel();
   }, []);
-  useEffect(() => { if (voiceInstalled) loadSttModel(); }, [voiceInstalled]);
 
   const send = async (msg: string, mode: "text" | "voice") => {
     if (!msg.trim()) return;
@@ -132,7 +131,7 @@ function Visitor() {
       </button>
       {(!voiceReady || micBlocked) && (
         <p role="status" className="-mt-3 text-center text-sm font-bold text-muted-foreground">
-          {voiceInstalled === false ? t.voiceNotInstalled : ai.stt === "error" || micBlocked ? t.voiceNo : ai.stt === "loading" ? `🎙 ${Math.round(ai.sttProgress)}%` : t.voiceOff}
+          {ai.stt === "error" || micBlocked ? t.voiceNo : ai.stt === "loading" ? `🎙 ${Math.round(ai.sttProgress)}%` : t.voiceOff}
         </p>
       )}
 

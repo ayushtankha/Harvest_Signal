@@ -7,7 +7,7 @@ import { submitFeedback } from "@/lib/submit";
 import { resetDemo } from "@/lib/db";
 import { DEMO_MESSAGES, AMBIGUOUS_DEMO } from "@/lib/taxonomy";
 import { CATEGORY_NAME } from "@/lib/i18n";
-import { useAI, useOfflineReady, useCoreReady } from "@/lib/hooks";
+import { useAI, useOfflineReady } from "@/lib/hooks";
 import { swVersion } from "@/lib/sw-register";
 
 const LANG_LABEL = { en: "English", fr: "French", de: "German" } as const;
@@ -22,7 +22,7 @@ function Demo() {
   const appSaved = useOfflineReady();
   const [files, setFiles] = useState(0);
   useEffect(() => { swVersion().then((v) => setFiles(v?.files ?? 0)); }, [appSaved]);
-  const ready = useCoreReady();
+  const ready = ai.embed === "ready" && ai.stt === "ready" && appSaved;
   const [log, setLog] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
 

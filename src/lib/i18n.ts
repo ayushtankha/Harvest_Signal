@@ -112,7 +112,7 @@ export const T = {
   },
 } satisfies Record<NoorLang, Record<string, string>>;
 
-type VKeys = "header" | "placeholder" | "send" | "speak" | "stop" | "listening" | "transcribing" | "thanks" | "another" | "voiceOff" | "voiceNo" | "voiceNotInstalled" | "privacy";
+type VKeys = "header" | "placeholder" | "send" | "speak" | "stop" | "listening" | "transcribing" | "thanks" | "another" | "voiceOff" | "voiceNo" | "privacy";
 export const VISITOR_T: Record<VisitorLang, Record<VKeys, string>> = {
   en: {
     header: "Tell Noor what you loved or wanted to see.",
@@ -126,7 +126,6 @@ export const VISITOR_T: Record<VisitorLang, Record<VKeys, string>> = {
     another: "Next visitor",
     voiceOff: "Voice not available yet — please type",
     voiceNo: "Voice unavailable on this device — please type",
-    voiceNotInstalled: "Voice input is not installed on this device. Use typing, or install the voice pack while connected to Wi-Fi.",
     privacy: "No names. Stays on this device.",
   },
   fr: {
@@ -141,7 +140,6 @@ export const VISITOR_T: Record<VisitorLang, Record<VKeys, string>> = {
     another: "Visiteur suivant",
     voiceOff: "Voix pas encore disponible — écrivez",
     voiceNo: "Voix indisponible sur cet appareil — écrivez",
-    voiceNotInstalled: "La saisie vocale n'est pas installée sur cet appareil. Écrivez, ou installez le pack voix avec le Wi-Fi.",
     privacy: "Aucun nom. Reste sur cet appareil.",
   },
   de: {
@@ -156,7 +154,6 @@ export const VISITOR_T: Record<VisitorLang, Record<VKeys, string>> = {
     another: "Nächster Besuch",
     voiceOff: "Sprache noch nicht verfügbar — bitte tippen",
     voiceNo: "Sprache auf diesem Gerät nicht verfügbar — bitte tippen",
-    voiceNotInstalled: "Spracheingabe ist auf diesem Gerät nicht installiert. Bitte tippen oder das Sprachpaket im WLAN installieren.",
     privacy: "Keine Namen. Bleibt auf diesem Gerät.",
   },
 };

@@ -4,7 +4,6 @@ import type { FeedbackRecord } from "./opportunity";
 import type { Category } from "./taxonomy";
 import { getAIStatus, subscribeAI, type AIStatus } from "./ai";
 import { checkOfflineReady } from "./sw-register";
-import { isVoiceInstalled, onVoiceChange } from "./voice-status";
 
 const SERVER_AI: AIStatus = { embed: "idle", stt: "idle", embedProgress: 0, sttProgress: 0 };
 
@@ -43,27 +42,6 @@ export function useOfflineReady() {
   }, []);
   return ready;
 }
-
-/** null while checking; true/false once known. */
-export function useVoiceInstalled() {
-  const [v, setV] = useState<boolean | null>(null);
-  useEffect(() => {
-    const check = () => { isVoiceInstalled().then(setV, () => setV(false)); };
-    check();
-    return onVoiceChange(check);
-  }, []);
-  return v;
-}
-
-/** Core text-only readiness: app saved + text AI ready + IndexedDB. Voice never affects it. */
-export function useCoreReady() {
-  const ai = useAI();
-  const appSaved = useOfflineReady();
-  const [idb, setIdb] = useState(false);
-  useEffect(() => setIdb(typeof indexedDB !== "undefined"), []);
-  return ai.embed === "ready" && appSaved && idb;
-}
-
 
 
 
