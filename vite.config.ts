@@ -12,4 +12,11 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  vite: {
+    // The app runs inference on WebAssembly only. Transformers.js imports the
+    // WebGPU entry of onnxruntime-web; point it at the WASM-only entry so the
+    // unused WebGPU/JSEP and asyncify engine files are not shipped.
+    resolve: { alias: { "onnxruntime-web/webgpu": "onnxruntime-web/wasm" } },
+    build: { sourcemap: false },
+  },
 });
