@@ -21,7 +21,8 @@ export interface FeedbackRecord {
 export const ALLOWED_FIELDS = ["id", "ts", "language", "inputMode", "label", "accepted", "score", "secondCategory", "second"] as const;
 
 /** Whitelist a (possibly legacy) record down to the permitted metadata. */
-export function sanitizeRecord(raw: Record<string, unknown>): FeedbackRecord | null {
+export function sanitizeRecord(input: object): FeedbackRecord | null {
+  const raw = input as { [k: string]: unknown; id?: unknown; ts?: unknown; label?: unknown; language?: unknown; inputMode?: unknown; accepted?: unknown; score?: unknown; secondCategory?: unknown; second?: unknown };
   if (typeof raw.id !== "string" || typeof raw.ts !== "number" || typeof raw.label !== "string") return null;
   return {
     id: raw.id,
