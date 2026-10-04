@@ -101,14 +101,11 @@ self.addEventListener("fetch", (e) => {
   const url = new URL(req.url);
   if (req.method !== "GET" || url.origin !== self.location.origin) return;
 
-  // Model + engine files: served from the model cache filled by the AI worker.
+  // Model + engine files: the AI worker stores core files itself, and the
+  // optional voice pack is stored only by the Settings installer. The service
+  // worker never saves these, so voice files are never part of the core download.
   if (url.pathname.startsWith("/models/") || url.pathname.startsWith("/__l5e/")) {
-    e.respondWith(
-      caches.match(req).then((hit) => hit || fetch(req).then((res) => {
-        if (res.ok) { const copy = res.clone(); caches.open("harvestsignal-models-v1").then((c) => c.put(req, copy)); }
-        return res;
-      })),
-    );
+    e.respondWith(caches.match(req).then((hit) => hit || fetch(req)));
     return;
   }
 

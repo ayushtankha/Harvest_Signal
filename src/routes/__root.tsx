@@ -127,10 +127,8 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   useEffect(() => {
     registerServiceWorker();
-    // Load both on-device models right away (text AI, then speech) so voice works offline too.
-    import("../lib/ai").then((m) =>
-      m.loadEmbedModel().catch(() => {}).finally(() => m.loadSttModel()),
-    );
+    // Load the core text AI right away. Voice is an optional pack installed from Settings.
+    import("../lib/ai").then((m) => m.loadEmbedModel().catch(() => {}));
   }, []);
 
   return (
