@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { Mic, Square, Send, Heart, Loader2, ShieldCheck } from "lucide-react";
 import { Screen, BigButton, ModelLoader } from "@/components/hs";
 import { meta } from "@/lib/meta";
-import { submitFeedback } from "@/lib/submit";
+import { submitFeedback, newSession, type VisitorSession } from "@/lib/submit";
 import { startRecording, speechToText, type Recorder } from "@/lib/speech";
 import { loadSttModel } from "@/lib/ai";
 import { VISITOR_T } from "@/lib/i18n";
@@ -29,13 +29,12 @@ function Visitor() {
   const [err, setErr] = useState<string | null>(null);
   const [mode, setMode] = useState<"text" | "voice">("text");
   const [micBlocked, setMicBlocked] = useState(false);
-  const sessionRef = useRef<string | null>(null);
+  const sessionRef = useRef<VisitorSession>(newSession());
   const recRef = useRef<Recorder | null>(null);
   const ai = useAI();
   const t = VISITOR_T[lang];
 
   useEffect(() => {
-    sessionRef.current = crypto.randomUUID();
     loadSttModel();
   }, []);
 
@@ -44,7 +43,7 @@ function Visitor() {
     setPhase("sending");
     setErr(null);
     try {
-        await submitFeedback(msg, lang, sessionRef.current!, mode);
+        await submitFeedback(msg, lang, sessionRef.current, mode);
       setText("");
       setPhase("thanks");
     } catch (e) {
@@ -89,7 +88,7 @@ function Visitor() {
           <h1 className="text-6xl font-semibold">{t.thanks}</h1>
           <BigButton
             className="w-full bg-card text-foreground ring-1 ring-border"
-            onClick={() => { sessionRef.current = crypto.randomUUID(); setPhase("input"); }}
+            onClick={() => { sessionRef.current = newSession(); setPhase("input"); }}
           >
             {t.another}
           </BigButton>

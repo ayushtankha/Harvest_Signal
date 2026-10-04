@@ -1,16 +1,40 @@
 import { CATEGORIES, type Category, type VisitorLang } from "./taxonomy";
 import type { Label } from "./classifier";
 
+/** Stored per submission — structured metadata only. Never visitor words,
+ *  transcripts, audio, names, contacts, or any visitor/device identifier. */
 export interface FeedbackRecord {
   id: string;
-  sessionId: string;
+  ts: number;
+  language: VisitorLang;
+  inputMode: "text" | "voice";
+  /** matched category, or "not_sure" when the threshold rule rejected it */
   label: Label;
+  /** true = Accepted by minScore + minMargin; false = Not sure */
+  accepted: boolean;
+  /** similarity score of the best category (not a probability) */
   score: number;
   secondCategory: Category;
   second: number;
-  language: VisitorLang;
-  inputMode: "text" | "voice";
-  ts: number;
+}
+
+export const ALLOWED_FIELDS = ["id", "ts", "language", "inputMode", "label", "accepted", "score", "secondCategory", "second"] as const;
+
+/** Whitelist a (possibly legacy) record down to the permitted metadata. */
+export function sanitizeRecord(input: object): FeedbackRecord | null {
+  const raw = input as { [k: string]: unknown; id?: unknown; ts?: unknown; label?: unknown; language?: unknown; inputMode?: unknown; accepted?: unknown; score?: unknown; secondCategory?: unknown; second?: unknown };
+  if (typeof raw.id !== "string" || typeof raw.ts !== "number" || typeof raw.label !== "string") return null;
+  return {
+    id: raw.id,
+    ts: raw.ts,
+    language: (["en", "fr", "de"].includes(raw.language as string) ? raw.language : "en") as VisitorLang,
+    inputMode: raw.inputMode === "voice" ? "voice" : "text",
+    label: raw.label as Label,
+    accepted: typeof raw.accepted === "boolean" ? raw.accepted : raw.label !== "not_sure",
+    score: typeof raw.score === "number" ? raw.score : 0,
+    secondCategory: (raw.secondCategory as Category) ?? "other",
+    second: typeof raw.second === "number" ? raw.second : 0,
+  };
 }
 
 export const OPPORTUNITY_MIN = 3;
@@ -18,28 +42,30 @@ export const DAY = 86_400_000;
 
 export interface CategoryStat {
   category: Category;
-  /** distinct anonymous sessions in the window */
+  /** separate accepted visitor submissions in the window */
   count: number;
   avgScore: number;
   languages: VisitorLang[];
   lastTs: number;
+  /** the supporting records (evidence) */
+  records: FeedbackRecord[];
 }
 
-/** Counts distinct anonymous sessions per category in the season window. */
+/** Counts accepted submissions per category in the season window. "Not sure" never counts. */
 export function categoryStats(records: FeedbackRecord[], now: number, windowDays: number): Record<Category, CategoryStat> {
   const from = now - windowDays * DAY;
   const out = {} as Record<Category, CategoryStat>;
   for (const c of CATEGORIES) {
-    const recs = records.filter((r) => r.label === c && r.ts >= from && r.ts <= now);
-    const bySession = new Map<string, FeedbackRecord>();
-    for (const r of recs) if (!bySession.has(r.sessionId)) bySession.set(r.sessionId, r);
-    const uniq = [...bySession.values()];
+    const recs = records
+      .filter((r) => r.label === c && r.accepted !== false && r.ts >= from && r.ts <= now)
+      .sort((a, b) => a.ts - b.ts);
     out[c] = {
       category: c,
-      count: uniq.length,
-      avgScore: uniq.length ? uniq.reduce((s, r) => s + r.score, 0) / uniq.length : 0,
-      languages: [...new Set(uniq.map((r) => r.language))],
-      lastTs: uniq.reduce((m, r) => Math.max(m, r.ts), 0),
+      count: recs.length,
+      avgScore: recs.length ? recs.reduce((s, r) => s + r.score, 0) / recs.length : 0,
+      languages: [...new Set(recs.map((r) => r.language))],
+      lastTs: recs.reduce((m, r) => Math.max(m, r.ts), 0),
+      records: recs,
     };
   }
   return out;

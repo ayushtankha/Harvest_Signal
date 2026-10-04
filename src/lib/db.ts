@@ -1,5 +1,5 @@
 import { openDB, type IDBPDatabase } from "idb";
-import type { FeedbackRecord } from "./opportunity";
+import { sanitizeRecord, type FeedbackRecord } from "./opportunity";
 import type { Category } from "./taxonomy";
 import { DEFAULT_THRESHOLDS, type Thresholds } from "./classifier";
 
@@ -23,11 +23,23 @@ export const DEFAULT_SETTINGS: Settings = { ...DEFAULT_THRESHOLDS, windowDays: 9
 
 let dbp: Promise<IDBPDatabase> | null = null;
 function db() {
-  dbp ??= openDB("harvestsignal", 1, {
-    upgrade(d) {
-      d.createObjectStore("feedback", { keyPath: "id" });
-      d.createObjectStore("drafts", { keyPath: "category" });
-      d.createObjectStore("kv");
+  dbp ??= openDB("harvestsignal", 2, {
+    async upgrade(d, oldVersion, _new, tx) {
+      if (oldVersion < 1) {
+        d.createObjectStore("feedback", { keyPath: "id" });
+        d.createObjectStore("drafts", { keyPath: "category" });
+        d.createObjectStore("kv");
+      }
+      if (oldVersion < 2 && oldVersion >= 1) {
+        // Migration: strip every field outside the permitted metadata (e.g. sessionId, any text).
+        const store = tx.objectStore("feedback");
+        let cur = await store.openCursor();
+        while (cur) {
+          const clean = sanitizeRecord(cur.value as Record<string, unknown>);
+          if (clean) await cur.update(clean); else await cur.delete();
+          cur = await cur.continue();
+        }
+      }
     },
   });
   return dbp;
@@ -40,7 +52,11 @@ export const onDataChange = (fn: () => void) => {
 };
 const changed = () => bus.dispatchEvent(new Event("change"));
 
-export async function addFeedback(r: FeedbackRecord) { await (await db()).put("feedback", r); changed(); }
+export async function addFeedback(r: FeedbackRecord) {
+  const clean = sanitizeRecord(r as unknown as Record<string, unknown>);
+  if (!clean) throw new Error("invalid record");
+  await (await db()).put("feedback", clean); changed();
+}
 export async function allFeedback(): Promise<FeedbackRecord[]> { return (await db()).getAll("feedback"); }
 export async function countFeedback() { return (await db()).count("feedback"); }
 
