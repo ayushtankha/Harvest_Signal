@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Trash2, ShieldCheck, Lock, Check, X as XIcon, RefreshCw } from "lucide-react";
 import { Screen, BigButton } from "@/components/hs";
 import { meta } from "@/lib/meta";
-import { useAI, useAppData, useOnline } from "@/lib/hooks";
+import { useAI, useAppData, useOnline, useOfflineReady } from "@/lib/hooks";
 import { countFeedback, deleteAllData, saveSettings } from "@/lib/db";
 import { swVersion, isPublishedHost, PUBLISHED_URL } from "@/lib/sw-register";
 import { DEFAULT_THRESHOLDS } from "@/lib/classifier";
@@ -120,6 +120,10 @@ function OfflineProof() {
   const online = useOnline();
   const [published, setPublished] = useState(true);
   useEffect(() => setPublished(isPublishedHost()), []);
+  const appSaved = useOfflineReady();
+  const ready = ai.embed === "ready" && ai.stt === "ready" && appSaved;
+  const [idb, setIdb] = useState(false);
+  useEffect(() => setIdb(typeof indexedDB !== "undefined"), []);
   const [info, setInfo] = useState<{ sw: boolean; version: string | null; files: number; records: number; modelFiles: string[] }>({ sw: false, version: null, files: 0, records: 0, modelFiles: [] });
   useEffect(() => {
     (async () => {
@@ -150,12 +154,16 @@ function OfflineProof() {
     <section className="rounded-3xl bg-card p-5 ring-1 ring-border">
       <h2 className="mb-3 text-2xl font-semibold">Offline proof</h2>
       <ul className="flex flex-col gap-3 text-lg">
+        {row(ready, ready ? "✓ Ready for airplane mode" : "Not ready for airplane mode yet", ready ? undefined : "Needs text model, speech model, saved app files and service worker control")}
+        {row(true, `Status: ${online ? "online" : "offline"}`)}
         {row(ai.embed === "ready", "Text model loaded locally", ai.embed)}
         {row(ai.stt === "ready", "Speech model loaded locally", ai.stt)}
         {row(info.sw, `Service worker controls this page: ${info.sw ? "yes" : "no"}`, info.sw ? undefined : published ? "Still saving — keep Wi-Fi on; the app reloads itself once when ready" : `Offline saving is off on this address (editor preview). Open ${PUBLISHED_URL} in Chrome instead.`)}
         {row(info.files > 0, `Saved app files: ${info.files}`)}
         {row(info.modelFiles.length > 0, `Cached model files: ${info.modelFiles.length}`, info.modelFiles.join(", "))}
-        {row(true, "Network not required for classification", online ? "Currently online" : "Currently offline")}
+        {row(idb, `IndexedDB available: ${idb ? "yes" : "no"}`)}
+        {row(true, "Network not required for classification")}
+        {row(null, "First install ≈ 209 MB, once, over Wi-Fi or side-loaded", "Text classifier ≈ 135 MB · speech ≈ 45 MB · AI engine ≈ 28 MB. Meant for a shared farm tablet or phone.")}
         {row(true, `Local feedback records: ${info.records}`)}
         {row(!!info.version, "Cached app version", info.version ?? "none")}
       </ul>
