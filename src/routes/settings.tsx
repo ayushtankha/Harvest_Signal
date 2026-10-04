@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import { Trash2, ShieldCheck, Lock, Check, X as XIcon, RefreshCw } from "lucide-react";
 import { Screen, BigButton } from "@/components/hs";
 import { meta } from "@/lib/meta";
-import { useAI, useAppData, useOnline, useOfflineReady } from "@/lib/hooks";
+import { useAI, useAppData, useOnline, useCoreReady, useVoiceInstalled } from "@/lib/hooks";
+import { VOICE_PACK_BYTES } from "@/lib/voice-status";
 import { countFeedback, deleteAllData, saveSettings } from "@/lib/db";
 import { swVersion, isPublishedHost, PUBLISHED_URL } from "@/lib/sw-register";
 import { DEFAULT_THRESHOLDS } from "@/lib/classifier";
@@ -110,6 +111,7 @@ function SettingsPage() {
         </div>
       </section>
 
+      <VoicePack />
       <OfflineProof />
     </Screen>
   );
@@ -120,8 +122,8 @@ function OfflineProof() {
   const online = useOnline();
   const [published, setPublished] = useState(true);
   useEffect(() => setPublished(isPublishedHost()), []);
-  const appSaved = useOfflineReady();
-  const ready = ai.embed === "ready" && ai.stt === "ready" && appSaved;
+  const ready = useCoreReady();
+  const voice = useVoiceInstalled();
   const [idb, setIdb] = useState(false);
   useEffect(() => setIdb(typeof indexedDB !== "undefined"), []);
   const [info, setInfo] = useState<{ sw: boolean; version: string | null; files: number; records: number; modelFiles: string[] }>({ sw: false, version: null, files: 0, records: 0, modelFiles: [] });
@@ -154,19 +156,72 @@ function OfflineProof() {
     <section className="rounded-3xl bg-card p-5 ring-1 ring-border">
       <h2 className="mb-3 text-2xl font-semibold">Offline proof</h2>
       <ul className="flex flex-col gap-3 text-lg">
-        {row(ready, ready ? "✓ Ready for airplane mode" : "Not ready for airplane mode yet", ready ? undefined : "Needs text model, speech model, saved app files and service worker control")}
+        {row(ready, ready ? "✓ Ready for airplane mode" : "Not ready for airplane mode yet", ready ? undefined : "Needs saved app files, service worker control, text model and IndexedDB")}
+        {row(ai.embed === "ready", `Text classification: ${ai.embed === "ready" ? "Installed" : "Not ready"}`)}
+        {row(!!voice, voice ? "Voice offline: Ready" : "Voice offline: Optional pack not installed")}
         {row(true, `Status: ${online ? "online" : "offline"}`)}
         {row(ai.embed === "ready", "Text model loaded locally", ai.embed)}
-        {row(ai.stt === "ready", "Speech model loaded locally", ai.stt)}
+        {row(ai.stt === "ready", "Speech model loaded locally", voice ? ai.stt : "optional pack not installed")}
         {row(info.sw, `Service worker controls this page: ${info.sw ? "yes" : "no"}`, info.sw ? undefined : published ? "Still saving — keep Wi-Fi on; the app reloads itself once when ready" : `Offline saving is off on this address (editor preview). Open ${PUBLISHED_URL} in Chrome instead.`)}
         {row(info.files > 0, `Saved app files: ${info.files}`)}
         {row(info.modelFiles.length > 0, `Cached model files: ${info.modelFiles.length}`, info.modelFiles.join(", "))}
         {row(idb, `IndexedDB available: ${idb ? "yes" : "no"}`)}
         {row(true, "Network not required for classification")}
-        {row(null, "First install ≈ 209 MB, once, over Wi-Fi or side-loaded", "Text classifier ≈ 135 MB · speech ≈ 45 MB · AI engine ≈ 28 MB. Meant for a shared farm tablet or phone.")}
+        {row(null, "Core install is large: download once over Wi-Fi or side-load", "See README for measured sizes. Meant for a shared farm tablet or phone. Voice is a separate optional pack.")}
         {row(true, `Local feedback records: ${info.records}`)}
         {row(!!info.version, "Cached app version", info.version ?? "none")}
       </ul>
+    </section>
+  );
+}
+
+function VoicePack() {
+  const online = useOnline();
+  const voice = useVoiceInstalled();
+  const [busy, setBusy] = useState(false);
+  const [pct, setPct] = useState(0);
+  const [err, setErr] = useState<string | null>(null);
+  const mb = (VOICE_PACK_BYTES / 1e6).toFixed(1);
+  const install = async () => {
+    setBusy(true); setErr(null); setPct(0);
+    try {
+      const m = await import("@/lib/voice-pack");
+      await m.installVoicePack((d, t) => setPct(Math.round((d / t) * 100)));
+    } catch (e) {
+      setErr(`Installation incomplete — voice is not installed. ${String((e as Error).message)}`);
+    }
+    setBusy(false);
+  };
+  const remove = async () => {
+    setBusy(true);
+    await (await import("@/lib/voice-pack")).removeVoicePack();
+    setBusy(false);
+  };
+  return (
+    <section className="rounded-3xl bg-card p-5 ring-1 ring-border">
+      <h2 className="mb-3 text-2xl font-semibold">Offline packs</h2>
+      <ul className="mb-4 flex flex-col gap-1 text-lg">
+        <li>Text classification: Installed with the app</li>
+        <li role="status">Voice input: {voice === null ? "…" : voice ? "Installed" : "Not installed"}</li>
+      </ul>
+      {!voice && (
+        <BigButton onClick={install} disabled={!online || busy || voice === null} className="w-full bg-accent text-accent-foreground">
+          {busy ? `Installing… ${pct}%` : `Install voice input for offline use (${mb} MB)`}
+        </BigButton>
+      )}
+      {!voice && !online && <p className="mt-2 text-sm text-muted-foreground">Connect to Wi-Fi to install the voice pack.</p>}
+      {busy && (
+        <div className="mt-3 h-3 overflow-hidden rounded-full bg-muted">
+          <div className="h-full bg-accent transition-all" style={{ width: `${pct}%` }} />
+        </div>
+      )}
+      {voice && (
+        <BigButton onClick={remove} disabled={busy} className="w-full bg-card text-foreground ring-1 ring-border">
+          Remove voice pack
+        </BigButton>
+      )}
+      {err && <p className="mt-2 text-sm text-destructive">{err}</p>}
+      <p className="mt-2 text-sm text-muted-foreground">Typing always works offline. Removing the voice pack keeps the text AI, pages and saved feedback.</p>
     </section>
   );
 }
