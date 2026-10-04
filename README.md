@@ -64,25 +64,87 @@ Fixed taxonomy only · not-sure on low score or small margin · evidence shown a
 ## Known limitations
 Whisper-tiny is weak in noise and on cheap phones; voice is optional and text always works. First load is large. iOS may evict caches when storage is low.
 
-## Airplane-mode test
-Open the published app once online and keep Wi-Fi on until the screen says "Ready for airplane mode" (text AI and voice model saved, every page saved, and the service worker controls the page — the app reloads itself once if needed). Only then enable airplane mode, test navigation between all core routes, and speak one request each in EN, FR and DE on the Visitor page (allow the microphone once).
+**Typing is the guaranteed offline input path. Voice is demonstrated only after successful validation on the demo device** (target: 10 consecutive real-device tests in airplane mode; not yet done). There is no online speech fallback.
 
-A. Open the PUBLISHED app online.
-B. Wait for the ✓ next to the chip icon (and 🎙 100% on the Visitor screen).
-C. Reload once.
-D. Settings → Offline proof: "Service worker controls this page: yes", saved app files > 0, model files cached.
-E. Turn on airplane mode.
-F. Reload the page.
-G. Tap Visitor.
-H. Go back, tap Noor.
-I. Open Settings.
-J. Open Demo.
-K. Demo → "3 harvest messages" → Open Noor: Harvest walk = 3, opportunity card in Albanian → Create Tour. Then Reset → "1 ambiguous message" → "Not sure"; Noor shows "Nuk ka mjaft të dhëna — pyet një vizitor."
-L. Real phone voice: speak a harvest request in EN, FR and DE (fresh session each time). If offline voice works, each shows a local transcript and is classified; if not, the screen says voice is unavailable and typing remains the guaranteed offline path.
+## Installation and model size
+- The complete first-time installation is approximately **209 MB** (text classifier ≈ 135 MB, speech ≈ 45 MB, AI engine ≈ 28 MB, plus app files).
+- It is downloaded **once** by a guide or cooperative over Wi-Fi, or side-loaded onto the shared device. It is **not** intended to be downloaded over a weak mobile connection.
+- After installation and caching, the core workflow runs offline.
+- Text-only use relies on the ≈ 135 MB multilingual classifier; speech support accounts for the additional files.
+- The intended device is a **shared tablet or smartphone kept at the farm**, not Noor's basic phone.
 
-How it works: on first online load the service worker reads the home page and every script, style and font it references (recursively), so every page's code is saved before the first offline navigation. The cache name is derived from the build's file list, so each publish replaces the old copy. If something is missing offline, the app shows "This part of the app isn't saved on this phone yet — open it once online" instead of a blank page.
+## Technical stack
+- TanStack Start + React 19, Vite, Tailwind CSS v4.
+- `@huggingface/transformers` **4.3.0** (pinned exactly).
+- `onnxruntime-web` **1.31.0-dev.20260914-8d85527a0**. This development build is not chosen by the app: `@huggingface/transformers` 4.3.0 pins this exact version as its own dependency. Replacing it with an older stable release would mismatch the library's expected engine and risk breaking model loading and offline inference, so it is kept as resolved.
+- IndexedDB (`idb`) for local records; Cache Storage + service worker for offline files.
+
+## Problem evidence
+> TODO — fill in with verified figures only. No figures below are real yet.
+
+| Statistic | Country | Year | Source name | Source link |
+|---|---|---|---|---|
+| TODO | TODO | TODO | TODO | TODO |
+| TODO | TODO | TODO | TODO | TODO |
+| TODO | TODO | TODO | TODO | TODO |
+
+Link to the Tourism challenge:
+- Small tourism operators need to understand what visitors valued.
+- Multilingual feedback is hard to combine manually.
+- Weak connectivity limits cloud-based tools.
+- Repeated visitor demand can help shape a new tourism experience.
+
+## Why Albanian
+Albanian is used as the prototype operator language because it reflects the team's localization perspective and demonstrates that the operator interface can be separated from visitor input languages. The interface uses a replaceable language file, so another deployment can substitute the operator's local language without changing the classification workflow.
+
+The classifier was not trained or fine-tuned in Albanian; Albanian is only the language of Noor's fixed interface text, and the translations have not been checked by a native speaker.
+
+## Evaluation
+- Thresholds (`minScore 0.84`, `minMargin 0.012`) were originally tuned on a small demo set.
+- A **separate** evaluation set of 40 synthetic messages lives in `src/lib/eval-set.ts` (EN 14 / FR 13 / DE 13; all 7 categories; 12 ambiguous, multi-intent or off-topic messages that should give "Not sure"). A test checks that none of them appear in the prototypes or demo messages. Thresholds were **not** changed after running it.
+- Metrics are computed by `src/lib/evaluate.ts` over predictions from the real on-device classifier (run in a headless Chromium browser against the dev server, 2026-10-04).
+
+Results (actual run, default thresholds):
+
+| Metric | Result |
+|---|---|
+| Total / correct | 40 / 31 |
+| Overall accuracy | 77.5 % |
+| By language | EN 11/14 · FR 12/13 · DE 8/13 |
+| By category | Harvest walk 1/4 · Coffee tasting 3/4 · Roasting 3/4 · Meals 4/4 · Prices 4/4 · Transport 4/4 · Other 3/4 · Not sure 9/12 |
+| "Not sure" rate | 37.5 % (15 of 40) |
+| Correct rejection (ambiguous/off-topic) | 9/12 = 75 % |
+| Confidently incorrect | 3 |
+
+Errors (expected → predicted): hw-en-1, hw-de-1, hw-en-2 harvest walk → Not sure; ct-de-1 coffee tasting → Not sure; ro-fr-1 roasting → Not sure; ot-en-1 other → Not sure; ns-de-1 Not sure → coffee tasting; ns-de-2 Not sure → prices; ns-de-4 (off-topic "Ich suche eine Apotheke.") → coffee tasting.
+
+Most errors are cautious "Not sure" answers; the 3 confident errors are all German. Harvest walk and coffee tasting are often close to each other. This set does not represent every accent, dialect, visitor expression or tourism context. **These results are prototype evidence, not a production performance guarantee.**
+
+## Manual demo checklist (continuous real-phone recording)
+1. Open the published app online.
+2. Wait until "Ready for airplane mode" appears.
+3. Show the service worker and cached-file status (Settings → Offline proof).
+4. Enable airplane mode and disable Wi-Fi.
+5. Open the Demo screen.
+6. Submit the English harvest message.
+7. Submit the French harvest message.
+8. Submit the German harvest message.
+9. Open Noor's dashboard.
+10. Show Harvest walk = 3.
+11. Show the opportunity card in Albanian.
+12. Select Create Tour.
+13. Show the fixed template and Edit/Dismiss controls.
+14. Submit the ambiguous message.
+15. Show "Not sure."
+16. Show "Nuk ka mjaft të dhëna — pyet një vizitor."
+17. Test one real voice message only if voice passed 10 consecutive tests.
+18. Open Settings → Offline proof.
+19. Close and reopen the app while still offline.
+20. Confirm routes and saved records still work.
+
+How offline works: on first online load the service worker reads the home page and every script, style and font it references (recursively), so every page's code is saved before the first offline navigation. The cache name is derived from the build's file list, so each publish replaces the old copy. If something is missing offline, the app shows "This part of the app isn't saved on this phone yet — open it once online" instead of a blank page.
 
 Two separate safeguards: **Not sure** = the AI is uncertain about one message; **Not enough data — ask a visitor** = fewer than 3 submissions for a category.
 
 ## Tests
-`bunx vitest run` — opportunity trigger (1/2/3 submissions, duplicate session, window) not-sure rules (low score, small margin) and "Delete all data" clearing local storage. Multilingual classification and offline behaviour are verified in a real browser with the network disabled.
+`bunx vitest run` — opportunity trigger (1/2/3 submissions, duplicate session, window), not-sure rules (low score, small margin), "Delete all data" clearing local storage, evaluation metrics, and evaluation-set separation. The evaluation numbers above come from the real model in a browser, not from these unit tests.
