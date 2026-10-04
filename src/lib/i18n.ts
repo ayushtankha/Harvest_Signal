@@ -24,16 +24,17 @@ export const CATEGORY_NAME: Record<NoorLang, Record<Category, string>> = {
   },
 };
 
-/** Fixed sentence: "N separate visitor submissions asked about X" in Noor's language. */
+/** Fixed sentence: "N separate visitor submissions asked about X" in Noor's language.
+ *  Albanian wording: NEEDS NATIVE-SPEAKER REVIEW. */
 export const INSIGHT: Record<NoorLang, Record<Category, (n: number) => string>> = {
   sq: {
-    harvest_walk: (n) => `${n} vizitorë kanë kërkuar një shëtitje gjatë korrjes.`,
-    coffee_tasting: (n) => `${n} vizitorë kanë kërkuar të shijojnë kafenë.`,
-    roasting: (n) => `${n} vizitorë kanë kërkuar të shohin pjekjen e kafes.`,
-    meals: (n) => `${n} vizitorë kanë kërkuar ushqime vendore.`,
-    prices: (n) => `${n} vizitorë kanë pyetur për çmimet.`,
-    transport: (n) => `${n} vizitorë kanë pyetur për transportin.`,
-    other: (n) => `${n} vizitorë kanë lënë mesazhe të tjera.`,
+    harvest_walk: (n) => `${n} mendime të veçanta vizitorësh kërkuan një shëtitje gjatë korrjes.`,
+    coffee_tasting: (n) => `${n} mendime të veçanta vizitorësh kërkuan të shijojnë kafenë.`,
+    roasting: (n) => `${n} mendime të veçanta vizitorësh kërkuan të shohin pjekjen e kafes.`,
+    meals: (n) => `${n} mendime të veçanta vizitorësh kërkuan ushqime vendore.`,
+    prices: (n) => `${n} mendime të veçanta vizitorësh pyetën për çmimet.`,
+    transport: (n) => `${n} mendime të veçanta vizitorësh pyetën për transportin.`,
+    other: (n) => `${n} mendime të veçanta vizitorësh lanë mesazhe të tjera.`,
   },
   en: {
     harvest_walk: (n) => `${n} separate visitor submissions asked for a walk during the harvest.`,
@@ -49,6 +50,26 @@ export const INSIGHT: Record<NoorLang, Record<Category, (n: number) => string>> 
 export const LANG_NAME: Record<NoorLang, Record<VisitorLang, string>> = {
   sq: { en: "anglisht", fr: "frëngjisht", de: "gjermanisht" },
   en: { en: "English", fr: "French", de: "German" },
+};
+
+/** Fixed suggested opportunity per category. Albanian: NEEDS NATIVE-SPEAKER REVIEW. */
+export const SUGGEST: Record<NoorLang, Record<Exclude<Category, "other">, string>> = {
+  sq: {
+    harvest_walk: "Vizitorët janë të interesuar për një shëtitje gjatë korrjes.",
+    coffee_tasting: "Vizitorët janë të interesuar për një përvojë shijimi kafeje.",
+    roasting: "Vizitorët janë të interesuar të shohin pjekjen e kafes.",
+    meals: "Vizitorët janë të interesuar për ushqime vendore në fermë.",
+    prices: "Vizitorët duan çmime më të qarta.",
+    transport: "Vizitorët kanë nevojë për transport drejt fermës.",
+  },
+  en: {
+    harvest_walk: "Visitors are interested in a harvest walk experience.",
+    coffee_tasting: "Visitors are interested in a coffee tasting experience.",
+    roasting: "Visitors are interested in a coffee roasting experience.",
+    meals: "Visitors are interested in local meals at the farm.",
+    prices: "Visitors want clearer prices.",
+    transport: "Visitors need transport to the farm.",
+  },
 };
 
 export const T = {
@@ -80,6 +101,17 @@ export const T = {
     back: "Mbrapa",
     settings: "Cilësimet",
     noorDecides: "AI vetëm të informon. Ti vendos.",
+    // New strings below: NEEDS NATIVE-SPEAKER REVIEW.
+    whyOpp: "Pse kjo mundësi?",
+    matched: "mendime anonime përputhen me",
+    similarity: "Rezultati i ngjashmërisë",
+    simExplain: "Rezultati i ngjashmërisë tregon sa afër ishte mesazhi me shembujt e kësaj kategorie. Nuk është probabilitet.",
+    notSureNote: "AI nuk ishte e sigurt për këto mesazhe. Ato nuk numërohen për një mundësi.",
+    of: "nga",
+    voice: "Zë",
+    text: "Tekst",
+    accepted: "Pranuar",
+    oppRule: "Një mundësi shfaqet pas 3 mendimeve të veçanta të vizitorëve në të njëjtën kategori.",
   },
   en: {
     offline: "Offline — core AI is working on this device",
@@ -92,7 +124,7 @@ export const T = {
     notEnough: "Not enough data — ask a visitor.",
     notSure: "Not sure",
     evidence: "Evidence",
-    avgSim: "Average similarity",
+    avgSim: "Average similarity score",
     languages: "Languages",
     createTour: "Create Tour",
     edit: "Edit",
@@ -109,6 +141,16 @@ export const T = {
     back: "Back",
     settings: "Settings",
     noorDecides: "The AI only informs. You decide.",
+    whyOpp: "Why this opportunity?",
+    matched: "anonymous submissions matched",
+    similarity: "Similarity score",
+    simExplain: "Similarity score shows how close the message was to examples of this category. It is not a probability.",
+    notSureNote: "The AI was not confident about these messages. They never count toward an opportunity.",
+    of: "of",
+    voice: "Voice",
+    text: "Text",
+    accepted: "Accepted",
+    oppRule: "An opportunity appears after 3 separate visitor submissions in the same category.",
   },
 } satisfies Record<NoorLang, Record<string, string>>;
 
