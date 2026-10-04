@@ -2,6 +2,7 @@
 import { classifyVector, e5, type ClassificationResult, type ProtoVec, type Thresholds } from "./classifier";
 import { prototypeList } from "./taxonomy";
 import { getKV, setKV } from "./db";
+import { isVoiceInstalled } from "./voice-status";
 
 export type ModelState = "idle" | "loading" | "ready" | "error";
 export interface AIStatus {
@@ -78,13 +79,22 @@ export function loadEmbedModel(): Promise<ProtoVec[]> {
   return protos;
 }
 
-export function loadSttModel() {
+export const MODEL_CACHE_NAME = "harvestsignal-models-v1";
+
+/** Loads local Whisper only if the optional voice pack is installed. Never downloads. */
+export async function loadSttModel() {
   if (status.stt === "ready" || status.stt === "loading") return;
+  if (!(await isVoiceInstalled())) { status.stt = "idle"; status.sttProgress = 0; emit(); return; }
   status.stt = "loading"; emit();
   call("init-stt").then(
     () => { status.stt = "ready"; status.sttProgress = 100; emit(); },
     (err) => { status.stt = "error"; status.error = String(err.message ?? err); emit(); },
   );
+}
+
+export function resetStt() {
+  status.stt = "idle"; status.sttProgress = 0; fileProgress.stt = {}; emit();
+  if (worker) call("reset-stt").catch(() => {});
 }
 
 export async function classifyText(text: string, t: Thresholds): Promise<ClassificationResult> {
