@@ -6,9 +6,10 @@ import { meta } from "@/lib/meta";
 import { useAppData } from "@/lib/hooks";
 import { categoryStats } from "@/lib/opportunity";
 import { CATEGORIES, CATEGORY_ICON, type Category } from "@/lib/taxonomy";
-import { INSIGHT, LANG_NAME, T, type NoorLang } from "@/lib/i18n";
+import { INSIGHT, LANG_NAME, SUGGEST, T, type NoorLang } from "@/lib/i18n";
 import { dismiss, saveSettings } from "@/lib/db";
 import { catName } from "@/lib/catname";
+import { WhyOpportunity } from "@/components/evidence";
 
 export const Route = createFileRoute("/noor/opportunity/$category")({
   beforeLoad: ({ params }) => {
@@ -41,16 +42,20 @@ function Opportunity() {
         <h1 className="text-5xl font-semibold">{CATEGORY_ICON[category]} {catName(category, settings)}</h1>
       )}
 
-      <p className="rounded-3xl bg-accent p-5 text-2xl font-semibold text-accent-foreground">{INSIGHT[L][category](s.count)}</p>
+      <div className="rounded-3xl bg-accent p-5 text-accent-foreground">
+        <p className="text-2xl font-semibold">{SUGGEST[L][category as Exclude<Category, "other">]}</p>
+        <p className="mt-2 text-xl">{INSIGHT[L][category](s.count)}</p>
+      </div>
 
       <section className="rounded-3xl bg-card p-5 ring-1 ring-border">
         <h2 className="mb-3 text-xl font-semibold">{t.evidence}</h2>
         <dl className="grid grid-cols-[1fr_auto] gap-y-3 text-lg">
           <dt>{L === "sq" ? "Mendime" : "Submissions"}</dt><dd className="font-bold tabular-nums">{s.count}</dd>
-          <dt>{t.avgSim}</dt><dd className="font-bold tabular-nums">{s.avgScore.toFixed(3)}</dd>
+          <dt>{t.avgSim}</dt><dd className="font-bold tabular-nums">{s.avgScore.toFixed(2)}</dd>
           <dt>{t.languages}</dt><dd className="text-right font-bold">{s.languages.map((l) => LANG_NAME[L][l]).join(", ") || "—"}</dd>
         </dl>
       </section>
+      <WhyOpportunity stat={s} L={L} settings={settings} open />
 
       <Link to="/noor/tour/$category" params={{ category }}
         className="flex min-h-16 items-center justify-center gap-3 rounded-2xl bg-primary text-xl font-bold text-primary-foreground shadow-sm">
